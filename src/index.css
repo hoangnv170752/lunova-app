@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .lunova-brand {
+    font-family: 'Great Vibes', 'Dancing Script', cursive;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  
+  .lunova-brand-alt {
+    font-family: 'Allura', 'Dancing Script', cursive;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+}

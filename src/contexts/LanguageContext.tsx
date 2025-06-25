@@ -1,0 +1,422 @@
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+export type Language = 'en' | 'ja';
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+const translations = {
+  en: {
+    // Header
+    'nav.home': 'Home',
+    'nav.services': 'Services',
+    'nav.collections': 'Collections',
+    'nav.pricing': 'Pricing',
+    'nav.reviews': 'Reviews',
+    'nav.contact': 'Contact',
+    'nav.shop': 'Shop',
+    
+    // Hero
+    'hero.badge': 'Premium Jewelry & Souvenirs',
+    'hero.title.line1': 'Jewelry.',
+    'hero.title.line2': 'Souvenirs.',
+    'hero.title.line3': 'Stories.',
+    'hero.description': 'A curated space for meaningful items that celebrate memories and connections.',
+    'hero.cta.getStarted': 'Let\'s Start',
+    'hero.cta.consultation': 'Book Consultation',
+    'hero.stats.customers': 'Happy Customers',
+    'hero.stats.experience': 'Years Experience',
+    'hero.stats.award': 'Award Winner',
+    'hero.stats.design': 'Design Excellence',
+    'hero.price.from': 'Starting from',
+    
+    // Authentication
+    'auth.login.title': 'Welcome Back',
+    'auth.login.subtitle': 'Sign in to your Lunova account',
+    'auth.login.error': 'Invalid email or password',
+    'auth.register.title': 'Create Account',
+    'auth.register.subtitle': 'Join the Lunova family today',
+    'auth.register.error': 'Registration failed. Please try again.',
+    'auth.register.passwordMismatch': 'Passwords do not match',
+    'auth.register.passwordTooShort': 'Password must be at least 6 characters',
+    'auth.register.agreeToTerms': 'I agree to the',
+    'auth.register.termsOfService': 'Terms of Service',
+    'auth.register.and': 'and',
+    'auth.register.privacyPolicy': 'Privacy Policy',
+    'auth.register.haveAccount': 'Already have an account?',
+    'auth.register.creatingAccount': 'Creating Account...',
+    'auth.register.createAccount': 'Create Account',
+    'auth.forgotPassword.title': 'Reset Password',
+    'auth.forgotPassword.subtitle': 'Enter your email to receive reset instructions',
+    'auth.forgotPassword.emailSent': 'Email Sent!',
+    'auth.forgotPassword.checkEmail': 'We\'ve sent password reset instructions to',
+    'auth.forgotPassword.emailInstructions': 'Please check your email and follow the instructions to reset your password.',
+    'auth.forgotPassword.backToLogin': 'Back to Login',
+    'auth.forgotPassword.sending': 'Sending...',
+    'auth.forgotPassword.sendResetLink': 'Send Reset Link',
+    'auth.email': 'Email Address',
+    'auth.password': 'Password',
+    'auth.fullName': 'Full Name',
+    'auth.confirmPassword': 'Confirm Password',
+    'auth.emailPlaceholder': 'Enter your email',
+    'auth.passwordPlaceholder': 'Enter your password',
+    'auth.fullNamePlaceholder': 'Enter your full name',
+    'auth.confirmPasswordPlaceholder': 'Confirm your password',
+    'auth.rememberMe': 'Remember me',
+    'auth.forgotPassword': 'Forgot password?',
+    'auth.signIn': 'Sign In',
+    'auth.signUp': 'Sign Up',
+    'auth.signingIn': 'Signing In...',
+    'auth.noAccount': 'Don\'t have an account?',
+    
+    // Dashboard
+    'dashboard.welcome': 'Welcome back',
+    'dashboard.subtitle': 'Manage your jewelry collection and orders',
+    'dashboard.logout': 'Logout',
+    'dashboard.stats.orders': 'Total Orders',
+    'dashboard.stats.favorites': 'Favorites',
+    'dashboard.stats.cart': 'Cart Items',
+    'dashboard.recentOrders': 'Recent Orders',
+    'dashboard.orderDate': 'Order Date',
+    'dashboard.newOrder': 'New Order',
+    'dashboard.favorites': 'Favorites',
+    'dashboard.profile': 'Profile',
+    'dashboard.settings': 'Settings',
+    
+    // Services
+    'services.title': 'Our Services',
+    'services.description': 'From custom designs to expert repairs, we offer comprehensive jewelry services to bring your vision to life and maintain your precious pieces.',
+    'services.custom.title': 'Custom Jewelry Design',
+    'services.custom.description': 'Create unique pieces tailored to your vision with our expert craftsmen.',
+    'services.custom.feature1': '3D Design Preview',
+    'services.custom.feature2': 'Material Selection',
+    'services.custom.feature3': 'Lifetime Warranty',
+    'services.restoration.title': 'Jewelry Restoration',
+    'services.restoration.description': 'Breathe new life into your cherished pieces with professional restoration.',
+    'services.restoration.feature1': 'Antique Restoration',
+    'services.restoration.feature2': 'Stone Replacement',
+    'services.restoration.feature3': 'Metal Refinishing',
+    'services.repair.title': 'Repair Services',
+    'services.repair.description': 'Expert repair services to keep your jewelry looking perfect.',
+    'services.repair.feature1': 'Ring Sizing',
+    'services.repair.feature2': 'Chain Repair',
+    'services.repair.feature3': 'Clasp Replacement',
+    'services.wedding.title': 'Wedding Collections',
+    'services.wedding.description': 'Special moments deserve special jewelry for your big day.',
+    'services.wedding.feature1': 'Engagement Rings',
+    'services.wedding.feature2': 'Wedding Bands',
+    'services.wedding.feature3': 'Bridal Sets',
+    'services.luxury.title': 'Luxury Pieces',
+    'services.luxury.description': 'Exclusive high-end jewelry for the most discerning clients.',
+    'services.luxury.feature1': 'Precious Stones',
+    'services.luxury.feature2': 'Platinum Setting',
+    'services.luxury.feature3': 'Certified Authenticity',
+    'services.souvenirs.title': 'Unique Souvenirs',
+    'services.souvenirs.description': 'Memorable keepsakes and gifts for every special occasion.',
+    'services.souvenirs.feature1': 'Personalized Engraving',
+    'services.souvenirs.feature2': 'Gift Packaging',
+    'services.souvenirs.feature3': 'Custom Boxes',
+    
+    // Collections
+    'collections.title': 'Our Collections',
+    'collections.description': 'Explore our carefully curated collections, each telling its own story through exceptional craftsmanship and timeless design.',
+    'collections.diamond.title': 'Diamond Elegance',
+    'collections.diamond.description': 'Timeless diamond pieces that capture eternal beauty',
+    'collections.pearl.title': 'Pearl Classics',
+    'collections.pearl.description': 'Sophisticated pearl jewelry for the modern woman',
+    'collections.gold.title': 'Gold Heritage',
+    'collections.gold.description': 'Handcrafted gold pieces with traditional artistry',
+    'collections.modern.title': 'Modern Minimalist',
+    'collections.modern.description': 'Clean lines and contemporary design for everyday wear',
+    'collections.vintage.title': 'Vintage Treasures',
+    'collections.vintage.description': 'Carefully curated vintage pieces with history',
+    'collections.custom.title': 'Custom Creations',
+    'collections.custom.description': 'Bespoke jewelry designed just for you',
+    'collections.view': 'View Collection',
+    'collections.viewAll': 'View All Collections',
+    'collections.from': 'From',
+    
+    // Pricing
+    'pricing.title': 'Choose Your Plan',
+    'pricing.description': 'Select the perfect service tier for your jewelry needs. Each plan is designed to deliver exceptional value and craftsmanship.',
+    'pricing.basic.name': 'Basic Explorer',
+    'pricing.basic.description': 'Perfect for discovering and trying jewelry',
+    'pricing.premium.name': 'Premium Collector',
+    'pricing.premium.description': 'Ideal for serious jewelry enthusiasts',
+    'pricing.business.name': 'Business Pro',
+    'pricing.business.description': 'Complete solution for jewelry businesses',
+    'pricing.enterprise.name': 'Enterprise Scale',
+    'pricing.enterprise.description': 'Advanced solution for large jewelry chains',
+    'pricing.popular': 'Most Popular',
+    'pricing.perPiece': 'per piece',
+    'pricing.getStarted': 'Get Started',
+    'pricing.bulkQuote': 'Need a custom quote for bulk orders?',
+    'pricing.contactSales': 'Contact Our Sales Team',
+    
+    // Testimonials
+    'testimonials.title': 'What Our Clients Say',
+    'testimonials.description': 'Don\'t just take our word for it. Here\'s what our satisfied customers have to say about their Lunova experience.',
+    'testimonials.rating': 'Average Rating',
+    'testimonials.reviews': 'Reviews',
+    'testimonials.satisfaction': 'Satisfaction Rate',
+    
+    // Contact
+    'contact.title': 'Get In Touch',
+    'contact.description': 'Ready to create something beautiful? Let\'s discuss your vision and bring your dream jewelry to life.',
+    'contact.info': 'Contact Information',
+    'contact.visit': 'Visit Our Showroom',
+    'contact.call': 'Call Us',
+    'contact.email': 'Email Us',
+    'contact.hours': 'Business Hours',
+    'contact.schedule': 'Schedule a Consultation',
+    'contact.scheduleDesc': 'Book a private consultation with our expert designers to discuss your project in detail.',
+    'contact.bookAppointment': 'Book Appointment',
+    'contact.sendMessage': 'Send Us a Message',
+    'contact.form.name': 'Name',
+    'contact.form.email': 'Email',
+    'contact.form.phone': 'Phone',
+    'contact.form.service': 'Service',
+    'contact.form.message': 'Message',
+    'contact.form.messagePlaceholder': 'Tell us about your project...',
+    'contact.form.send': 'Send Message',
+    'contact.form.selectService': 'Select a service',
+    'contact.form.customDesign': 'Custom Design',
+    'contact.form.restoration': 'Restoration',
+    'contact.form.repair': 'Repair',
+    'contact.form.consultation': 'Consultation',
+    
+    // Footer
+    'footer.description': 'Creating timeless jewelry and precious memories since 1998. Every piece tells a story, crafted with passion and precision.',
+    'footer.quickLinks': 'Quick Links',
+    'footer.services': 'Services',
+    'footer.contactInfo': 'Contact Info',
+    'footer.newsletter': 'Newsletter',
+    'footer.newsletterPlaceholder': 'Your email',
+    'footer.copyright': '© 2024 Lunova Jewelry. All rights reserved.',
+    'footer.privacy': 'Privacy Policy',
+    'footer.terms': 'Terms of Service',
+    'footer.shipping': 'Shipping & Returns'
+  },
+  ja: {
+    // Header
+    'nav.home': 'ホーム',
+    'nav.services': 'サービス',
+    'nav.collections': 'コレクション',
+    'nav.pricing': '料金',
+    'nav.reviews': 'レビュー',
+    'nav.contact': 'お問い合わせ',
+    'nav.shop': 'ショップ',
+    
+    // Hero
+    'hero.badge': 'プレミアムジュエリー＆記念品',
+    'hero.title.line1': 'ジュエリー。',
+    'hero.title.line2': '記念品。',
+    'hero.title.line3': '物語。',
+    'hero.description': '思い出とつながりを祝う意味のあるアイテムのためのキュレーションされた空間。',
+    'hero.cta.getStarted': '始めましょう',
+    'hero.cta.consultation': '相談予約',
+    'hero.stats.customers': '満足顧客',
+    'hero.stats.experience': '年の経験',
+    'hero.stats.award': '受賞歴',
+    'hero.stats.design': 'デザイン優秀賞',
+    'hero.price.from': '開始価格',
+    
+    // Authentication
+    'auth.login.title': 'おかえりなさい',
+    'auth.login.subtitle': 'Lunovaアカウントにサインイン',
+    'auth.login.error': 'メールアドレスまたはパスワードが無効です',
+    'auth.register.title': 'アカウント作成',
+    'auth.register.subtitle': '今日からLunovaファミリーに参加',
+    'auth.register.error': '登録に失敗しました。もう一度お試しください。',
+    'auth.register.passwordMismatch': 'パスワードが一致しません',
+    'auth.register.passwordTooShort': 'パスワードは6文字以上である必要があります',
+    'auth.register.agreeToTerms': '私は以下に同意します',
+    'auth.register.termsOfService': '利用規約',
+    'auth.register.and': 'および',
+    'auth.register.privacyPolicy': 'プライバシーポリシー',
+    'auth.register.haveAccount': 'すでにアカウントをお持ちですか？',
+    'auth.register.creatingAccount': 'アカウント作成中...',
+    'auth.register.createAccount': 'アカウント作成',
+    'auth.forgotPassword.title': 'パスワードリセット',
+    'auth.forgotPassword.subtitle': 'リセット手順を受け取るためにメールアドレスを入力してください',
+    'auth.forgotPassword.emailSent': 'メール送信完了！',
+    'auth.forgotPassword.checkEmail': 'パスワードリセット手順を以下に送信しました',
+    'auth.forgotPassword.emailInstructions': 'メールをご確認いただき、手順に従ってパスワードをリセットしてください。',
+    'auth.forgotPassword.backToLogin': 'ログインに戻る',
+    'auth.forgotPassword.sending': '送信中...',
+    'auth.forgotPassword.sendResetLink': 'リセットリンクを送信',
+    'auth.email': 'メールアドレス',
+    'auth.password': 'パスワード',
+    'auth.fullName': 'フルネーム',
+    'auth.confirmPassword': 'パスワード確認',
+    'auth.emailPlaceholder': 'メールアドレスを入力',
+    'auth.passwordPlaceholder': 'パスワードを入力',
+    'auth.fullNamePlaceholder': 'フルネームを入力',
+    'auth.confirmPasswordPlaceholder': 'パスワードを確認',
+    'auth.rememberMe': 'ログイン状態を保持',
+    'auth.forgotPassword': 'パスワードを忘れましたか？',
+    'auth.signIn': 'サインイン',
+    'auth.signUp': 'サインアップ',
+    'auth.signingIn': 'サインイン中...',
+    'auth.noAccount': 'アカウントをお持ちでないですか？',
+    
+    // Dashboard
+    'dashboard.welcome': 'おかえりなさい',
+    'dashboard.subtitle': 'ジュエリーコレクションと注文を管理',
+    'dashboard.logout': 'ログアウト',
+    'dashboard.stats.orders': '総注文数',
+    'dashboard.stats.favorites': 'お気に入り',
+    'dashboard.stats.cart': 'カート商品',
+    'dashboard.recentOrders': '最近の注文',
+    'dashboard.orderDate': '注文日',
+    'dashboard.newOrder': '新規注文',
+    'dashboard.favorites': 'お気に入り',
+    'dashboard.profile': 'プロフィール',
+    'dashboard.settings': '設定',
+    
+    // Services
+    'services.title': '私たちのサービス',
+    'services.description': 'カスタムデザインから専門的な修理まで、あなたのビジョンを実現し、貴重な作品を維持するための包括的なジュエリーサービスを提供します。',
+    'services.custom.title': 'カスタムジュエリーデザイン',
+    'services.custom.description': '熟練の職人があなたのビジョンに合わせたユニークな作品を作成します。',
+    'services.custom.feature1': '3Dデザインプレビュー',
+    'services.custom.feature2': '素材選択',
+    'services.custom.feature3': '生涯保証',
+    'services.restoration.title': 'ジュエリー修復',
+    'services.restoration.description': 'プロの修復で大切な作品に新しい命を吹き込みます。',
+    'services.restoration.feature1': 'アンティーク修復',
+    'services.restoration.feature2': '石の交換',
+    'services.restoration.feature3': '金属再仕上げ',
+    'services.repair.title': '修理サービス',
+    'services.repair.description': 'ジュエリーを完璧な状態に保つ専門修理サービス。',
+    'services.repair.feature1': 'リングサイズ調整',
+    'services.repair.feature2': 'チェーン修理',
+    'services.repair.feature3': '留め具交換',
+    'services.wedding.title': 'ウェディングコレクション',
+    'services.wedding.description': '特別な瞬間には特別なジュエリーを。',
+    'services.wedding.feature1': '婚約指輪',
+    'services.wedding.feature2': '結婚指輪',
+    'services.wedding.feature3': 'ブライダルセット',
+    'services.luxury.title': 'ラグジュアリーピース',
+    'services.luxury.description': '最も目の肥えたお客様のための高級ジュエリー。',
+    'services.luxury.feature1': '貴石',
+    'services.luxury.feature2': 'プラチナセッティング',
+    'services.luxury.feature3': '認定証明書',
+    'services.souvenirs.title': 'ユニーク記念品',
+    'services.souvenirs.description': '特別な機会のための思い出に残る記念品とギフト。',
+    'services.souvenirs.feature1': 'パーソナル彫刻',
+    'services.souvenirs.feature2': 'ギフト包装',
+    'services.souvenirs.feature3': 'カスタムボックス',
+    
+    // Collections
+    'collections.title': '私たちのコレクション',
+    'collections.description': '卓越した職人技と時代を超越したデザインで、それぞれが独自の物語を語る厳選されたコレクションをご覧ください。',
+    'collections.diamond.title': 'ダイヤモンドエレガンス',
+    'collections.diamond.description': '永遠の美しさを捉えた時代を超越したダイヤモンド作品',
+    'collections.pearl.title': 'パールクラシック',
+    'collections.pearl.description': '現代女性のための洗練されたパールジュエリー',
+    'collections.gold.title': 'ゴールドヘリテージ',
+    'collections.gold.description': '伝統的な職人技による手作りゴールド作品',
+    'collections.modern.title': 'モダンミニマリスト',
+    'collections.modern.description': '日常使いのためのクリーンラインと現代的デザイン',
+    'collections.vintage.title': 'ヴィンテージトレジャー',
+    'collections.vintage.description': '歴史を持つ厳選されたヴィンテージ作品',
+    'collections.custom.title': 'カスタムクリエーション',
+    'collections.custom.description': 'あなただけのためにデザインされたオーダーメイドジュエリー',
+    'collections.view': 'コレクションを見る',
+    'collections.viewAll': 'すべてのコレクションを見る',
+    'collections.from': '開始価格',
+    
+    // Pricing
+    'pricing.title': 'プランを選択',
+    'pricing.description': 'あなたのジュエリーニーズに最適なサービス階層を選択してください。各プランは卓越した価値と職人技を提供するよう設計されています。',
+    'pricing.basic.name': 'ベーシックエクスプローラー',
+    'pricing.basic.description': 'ジュエリーの発見と試着に最適',
+    'pricing.premium.name': 'プレミアムコレクター',
+    'pricing.premium.description': '本格的なジュエリー愛好家に理想的',
+    'pricing.business.name': 'ビジネスプロ',
+    'pricing.business.description': 'ジュエリービジネスのための完全ソリューション',
+    'pricing.enterprise.name': 'エンタープライズスケール',
+    'pricing.enterprise.description': '大規模ジュエリーチェーンのための高度なソリューション',
+    'pricing.popular': '最も人気',
+    'pricing.perPiece': '作品あたり',
+    'pricing.getStarted': '始める',
+    'pricing.bulkQuote': '大量注文のカスタム見積もりが必要ですか？',
+    'pricing.contactSales': '営業チームにお問い合わせ',
+    
+    // Testimonials
+    'testimonials.title': 'お客様の声',
+    'testimonials.description': '私たちの言葉だけでなく、Lunovaの体験について満足されたお客様の声をお聞きください。',
+    'testimonials.rating': '平均評価',
+    'testimonials.reviews': 'レビュー',
+    'testimonials.satisfaction': '満足度',
+    
+    // Contact
+    'contact.title': 'お問い合わせ',
+    'contact.description': '美しいものを作る準備はできていますか？あなたのビジョンについて話し合い、夢のジュエリーを実現しましょう。',
+    'contact.info': '連絡先情報',
+    'contact.visit': 'ショールーム訪問',
+    'contact.call': 'お電話',
+    'contact.email': 'メール',
+    'contact.hours': '営業時間',
+    'contact.schedule': '相談予約',
+    'contact.scheduleDesc': '専門デザイナーとのプライベート相談を予約して、プロジェクトについて詳しく話し合いましょう。',
+    'contact.bookAppointment': '予約する',
+    'contact.sendMessage': 'メッセージを送る',
+    'contact.form.name': 'お名前',
+    'contact.form.email': 'メールアドレス',
+    'contact.form.phone': '電話番号',
+    'contact.form.service': 'サービス',
+    'contact.form.message': 'メッセージ',
+    'contact.form.messagePlaceholder': 'プロジェクトについてお聞かせください...',
+    'contact.form.send': 'メッセージを送信',
+    'contact.form.selectService': 'サービスを選択',
+    'contact.form.customDesign': 'カスタムデザイン',
+    'contact.form.restoration': '修復',
+    'contact.form.repair': '修理',
+    'contact.form.consultation': '相談',
+    
+    // Footer
+    'footer.description': '1998年以来、時代を超越したジュエリーと貴重な思い出を創造しています。すべての作品が物語を語り、情熱と精密さで作られています。',
+    'footer.quickLinks': 'クイックリンク',
+    'footer.services': 'サービス',
+    'footer.contactInfo': '連絡先情報',
+    'footer.newsletter': 'ニュースレター',
+    'footer.newsletterPlaceholder': 'メールアドレス',
+    'footer.copyright': '© 2024 Lunova Jewelry. All rights reserved.',
+    'footer.privacy': 'プライバシーポリシー',
+    'footer.terms': '利用規約',
+    'footer.shipping': '配送・返品'
+  }
+};
+
+interface LanguageProviderProps {
+  children: ReactNode;
+}
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>('en');
+
+  const t = (key: string): string => {
+    return translations[language][key as keyof typeof translations['en']] || key;
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = (): LanguageContextType => {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
