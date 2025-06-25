@@ -88,7 +88,7 @@ const Services: React.FC = () => {
       });
 
       // Hover animations for cards
-      cardsRef.current.forEach((card, index) => {
+      cardsRef.current.forEach((card) => {
         if (card) {
           const icon = card.querySelector('.service-icon');
           

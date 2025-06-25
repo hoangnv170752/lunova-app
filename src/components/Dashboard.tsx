@@ -1,42 +1,43 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
+import UserSettingsModal from './modals/UserSettingsModal';
 import WeatherDisplay from './WeatherDisplay';
 import { 
   LogOut, 
-  User, 
   Package, 
+  Gem, 
+  Ticket, 
+  Search, 
+  Filter, 
+  ChevronDown, 
+  ChevronLeft, 
+  ChevronRight,
   Bell,
-  Search,
-  Filter,
-  ChevronDown,
-  Users,
-  BarChart3,
-  FileText,
-  Ticket,
-  Gem,
   TrendingUp,
   TrendingDown,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight
+  User,
+  MoreHorizontal
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('users');
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   // const [sortBy, setSortBy] = useState('name');
 
   const sidebarItems = [
-    { id: 'dashboard', label: t('dashboard.welcome'), icon: BarChart3, count: null },
-    { id: 'users', label: t('nav.users') || 'Users', icon: Users, count: 1250, active: true },
+    // { id: 'dashboard', label: t('dashboard.welcome'), icon: BarChart3, count: null },
+    // { id: 'users', label: t('nav.users') || 'Users', icon: Users, count: 1250, active: true },
     { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89 },
-    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156 },
-    { id: 'analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, count: null },
-    { id: 'blogs', label: t('nav.blogs') || 'Blogs', icon: FileText, count: 23 },
-    { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12 },
+    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156, route: '/dashboard/product' },
+    // { id: 'analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, count: null },
+    // { id: 'blogs', label: t('nav.blogs') || 'Blogs', icon: FileText, count: 23 },
+    { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
   ];
 
   const stats = [
@@ -81,6 +82,12 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black flex">
+      {isSettingsModalOpen && (
+        <UserSettingsModal 
+          isOpen={isSettingsModalOpen} 
+          onClose={() => setIsSettingsModalOpen(false)} 
+        />
+      )}
       {/* Sidebar */}
       <div className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
         {/* Logo */}
@@ -91,9 +98,9 @@ const Dashboard: React.FC = () => {
             </div>
             <span className="text-xl font-bold text-white lunova-brand">Lunova</span>
           </div>
-          <div className="mt-4">
-            <WeatherDisplay compact />
-          </div>
+        </div>
+        <div className="p-4 border-b border-gray-800">
+          <WeatherDisplay />
         </div>
 
         {/* Navigation */}
@@ -102,7 +109,12 @@ const Dashboard: React.FC = () => {
             {sidebarItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (item.route) {
+                      navigate(item.route);
+                    }
+                  }}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
                     item.id === activeTab
                       ? 'bg-yellow-400/10 text-yellow-400 border-r-2 border-yellow-400'
@@ -151,14 +163,15 @@ const Dashboard: React.FC = () => {
               <button className="text-gray-400 hover:text-yellow-400 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
-              <div className="flex items-center space-x-3">
-                <img
-                  src="https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=40"
-                  alt={user?.name}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <span className="text-sm font-medium text-white">{user?.name}</span>
-              </div>
+              <button 
+                onClick={() => setIsSettingsModalOpen(true)}
+                className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 transition-colors rounded-full p-1 pr-4"
+              >
+                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <span className="text-black font-medium">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                </div>
+                <span className="text-sm text-gray-300">{user?.email?.split('@')[0] || 'User'}</span>
+              </button>
             </div>
           </div>
         </header>

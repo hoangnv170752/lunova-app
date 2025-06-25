@@ -4,7 +4,9 @@ export type Language = 'en' | 'ja';
 
 interface LanguageContextType {
   language: Language;
+  currentLanguage: Language;
   setLanguage: (lang: Language) => void;
+  changeLanguage: (lang: Language) => void;
   t: (key: string) => string;
 }
 
@@ -21,6 +23,11 @@ const translations = {
     'nav.contact': 'Contact',
     'nav.shop': 'Shop',
     'nav.account': 'Account',
+    'nav.users': 'Users',
+    'nav.products': 'Products',
+    'nav.analytics': 'Analytics',
+    'nav.blogs': 'Blogs',
+    'nav.tickets': 'Tickets',
     
     // Hero
     'hero.badge': 'Premium Jewelry & Souvenirs',
@@ -88,6 +95,72 @@ const translations = {
     'dashboard.favorites': 'Favorites',
     'dashboard.profile': 'Profile',
     'dashboard.settings': 'Settings',
+    'dashboard.userManagement': 'User Management',
+    'dashboard.users': 'users',
+    'dashboard.searchUsers': 'Search users...',
+    'dashboard.sortingBy': 'Sorting By',
+    'dashboard.filters': 'Filters',
+    'dashboard.userName': 'User Name',
+    'dashboard.emailAddress': 'Email Address',
+    'dashboard.city': 'City',
+    'dashboard.createdAt': 'Created at',
+    'dashboard.actions': 'Actions',
+    'dashboard.previous': 'Previous',
+    'dashboard.next': 'Next',
+    'dashboard.stats.activeUsers': 'Active Users',
+    'dashboard.stats.newUsers': 'New Users',
+    'dashboard.stats.totalUsers': 'Total Users',
+    'dashboard.stats.comparedTo': 'compared to last month',
+    'dashboard.products.title': 'Products',
+    'dashboard.products.items': 'items',
+    'dashboard.products.searchProducts': 'Search products...',
+    'dashboard.products.addProduct': 'Add Product',
+    'dashboard.products.productName': 'Product Name',
+    'dashboard.products.category': 'Category',
+    'dashboard.products.price': 'Price',
+    'dashboard.products.stock': 'Stock',
+    'dashboard.products.status': 'Status',
+    'dashboard.products.showing': 'Showing',
+    'dashboard.products.to': 'to',
+    'dashboard.products.of': 'of',
+    'dashboard.products.results': 'results',
+    'dashboard.tickets.title': 'Support Tickets',
+    'dashboard.tickets.items': 'tickets',
+    'dashboard.tickets.searchTickets': 'Search tickets...',
+    'dashboard.tickets.createTicket': 'Create Ticket',
+    'dashboard.tickets.ticketId': 'Ticket ID',
+    'dashboard.tickets.subject': 'Subject',
+    'dashboard.tickets.customer': 'Customer',
+    'dashboard.tickets.status': 'Status',
+    'dashboard.tickets.priority': 'Priority',
+    'dashboard.tickets.created': 'Created',
+    'dashboard.tickets.updated': 'Updated',
+    'dashboard.tickets.showing': 'Showing',
+    'dashboard.tickets.to': 'to',
+    'dashboard.tickets.of': 'of',
+    'dashboard.tickets.results': 'results',
+
+    // Settings Modal
+    'settings.title': 'Settings',
+    'settings.general': 'General',
+    'settings.account': 'Account',
+    'settings.notifications': 'Notifications',
+    'settings.privacy': 'Privacy',
+    'settings.appearance': 'Appearance',
+    'settings.language': 'Language',
+    'settings.autoSave': 'Auto-save changes',
+    'settings.analytics': 'Share analytics',
+    'settings.changePassword': 'Change Password',
+    'settings.twoFactor': 'Two-factor Authentication',
+    'settings.connectedAccounts': 'Connected Accounts',
+    'settings.emailNotifications': 'Email Notifications',
+    'settings.pushNotifications': 'Push Notifications',
+    'settings.marketingEmails': 'Marketing Emails',
+    'settings.dataSaving': 'Data Saving',
+    'settings.cookies': 'Cookie Preferences',
+    'settings.dataExport': 'Export Your Data',
+    'settings.darkMode': 'Dark Mode',
+    'settings.theme': 'Theme',
     
     // Services
     'services.title': 'Our Services',
@@ -146,7 +219,7 @@ const translations = {
     'pricing.title': 'Choose Your Plan',
     'pricing.description': 'Whether you\'re a jewelry enthusiast or a business owner, we have the perfect plan to meet your needs.',
     'pricing.forBuyers': 'For Buyers',
-    'pricing.forShopOwners': 'For Shop Owners',
+    'pricing.forShopOwners': 'For Shops',
     'pricing.basic.name': 'Basic Explorer',
     'pricing.basic.description': 'Perfect for discovering and trying jewelry',
     'pricing.premium.name': 'Premium Collector',
@@ -215,6 +288,11 @@ const translations = {
     'nav.contact': 'お問い合わせ',
     'nav.shop': 'ショップ',
     'nav.account': 'アカウント',
+    'nav.users': 'ユーザー',
+    'nav.products': '製品',
+    'nav.analytics': '分析',
+    'nav.blogs': 'ブログ',
+    'nav.tickets': 'チケット',
     
     // Hero
     'hero.badge': 'プレミアムジュエリー＆記念品',
@@ -282,6 +360,72 @@ const translations = {
     'dashboard.favorites': 'お気に入り',
     'dashboard.profile': 'プロフィール',
     'dashboard.settings': '設定',
+    'dashboard.userManagement': 'ユーザー管理',
+    'dashboard.users': 'ユーザー',
+    'dashboard.searchUsers': 'ユーザーを検索...',
+    'dashboard.sortingBy': '並び替え',
+    'dashboard.filters': 'フィルター',
+    'dashboard.userName': 'ユーザー名',
+    'dashboard.emailAddress': 'メールアドレス',
+    'dashboard.city': '都市',
+    'dashboard.createdAt': '作成日',
+    'dashboard.actions': 'アクション',
+    'dashboard.previous': '前へ',
+    'dashboard.next': '次へ',
+    'dashboard.stats.activeUsers': 'アクティブユーザー',
+    'dashboard.stats.newUsers': '新規ユーザー',
+    'dashboard.stats.totalUsers': '総ユーザー数',
+    'dashboard.stats.comparedTo': '先月比',
+    'dashboard.products.title': '製品',
+    'dashboard.products.items': 'アイテム',
+    'dashboard.products.searchProducts': '製品を検索...',
+    'dashboard.products.addProduct': '製品を追加',
+    'dashboard.products.productName': '製品名',
+    'dashboard.products.category': 'カテゴリー',
+    'dashboard.products.price': '価格',
+    'dashboard.products.stock': '在庫',
+    'dashboard.products.status': 'ステータス',
+    'dashboard.products.showing': '表示中',
+    'dashboard.products.to': 'から',
+    'dashboard.products.of': 'の',
+    'dashboard.products.results': '結果',
+    'dashboard.tickets.title': 'サポートチケット',
+    'dashboard.tickets.items': 'チケット',
+    'dashboard.tickets.searchTickets': 'チケットを検索...',
+    'dashboard.tickets.createTicket': 'チケットを作成',
+    'dashboard.tickets.ticketId': 'チケットID',
+    'dashboard.tickets.subject': '件名',
+    'dashboard.tickets.customer': '顧客',
+    'dashboard.tickets.status': 'ステータス',
+    'dashboard.tickets.priority': '優先度',
+    'dashboard.tickets.created': '作成日',
+    'dashboard.tickets.updated': '更新日',
+    'dashboard.tickets.showing': '表示中',
+    'dashboard.tickets.to': 'から',
+    'dashboard.tickets.of': '/',
+    'dashboard.tickets.results': '結果',
+
+    // Settings Modal
+    'settings.title': '設定',
+    'settings.general': '一般',
+    'settings.account': 'アカウント',
+    'settings.notifications': '通知',
+    'settings.privacy': 'プライバシー',
+    'settings.appearance': '外観',
+    'settings.language': '言語',
+    'settings.autoSave': '自動保存',
+    'settings.analytics': '分析情報を共有',
+    'settings.changePassword': 'パスワードを変更',
+    'settings.twoFactor': '二要素認証',
+    'settings.connectedAccounts': '接続済みアカウント',
+    'settings.emailNotifications': 'メール通知',
+    'settings.pushNotifications': 'プッシュ通知',
+    'settings.marketingEmails': 'マーケティングメール',
+    'settings.dataSaving': 'データ節約',
+    'settings.cookies': 'Cookieの設定',
+    'settings.dataExport': 'データのエクスポート',
+    'settings.darkMode': 'ダークモード',
+    'settings.theme': 'テーマ',
     
     // Services
     'services.title': '私たちのサービス',
@@ -340,7 +484,7 @@ const translations = {
     'pricing.title': 'プランを選択',
     'pricing.description': 'ジュエリー愛好家でもビジネスオーナーでも、あなたのニーズに合った完璧なプランをご用意しています。',
     'pricing.forBuyers': '購入者向け',
-    'pricing.forShopOwners': 'ショップオーナー向け',
+    'pricing.forShopOwners': 'ショップ向け',
     'pricing.basic.name': 'ベーシックエクスプローラー',
     'pricing.basic.description': 'ジュエリーの発見と試着に最適',
     'pricing.premium.name': 'プレミアムコレクター',
@@ -409,11 +553,21 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations['en']] || key;
+    return translations[language][key as keyof typeof translations[typeof language]] || key;
+  };
+
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      currentLanguage: language, 
+      setLanguage, 
+      changeLanguage, 
+      t 
+    }}>
       {children}
     </LanguageContext.Provider>
   );
