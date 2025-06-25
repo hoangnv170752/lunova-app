@@ -461,10 +461,10 @@ const Pricing: React.FC = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div ref={titleRef} className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Choose Your <span className="text-yellow-400">Plan</span>
+            {t('pricing.title')}
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-            Whether you're a jewelry enthusiast or a business owner, we have the perfect plan to meet your needs.
+            {t('pricing.description')}
           </p>
           
           {/* Animated Plan Type Switch */}
@@ -480,7 +480,7 @@ const Pricing: React.FC = () => {
                   }`}
                 >
                   <Eye className="h-5 w-5" />
-                  <span>For Buyers</span>
+                  <span>{t('pricing.forBuyers')}</span>
                 </button>
                 <button
                   onClick={() => handlePlanTypeChange('business')}
@@ -491,7 +491,7 @@ const Pricing: React.FC = () => {
                   }`}
                 >
                   <Store className="h-5 w-5" />
-                  <span>For Shop Owners</span>
+                  <span>{t('pricing.forShopOwners')}</span>
                 </button>
               </div>
               

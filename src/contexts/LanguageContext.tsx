@@ -143,7 +143,9 @@ const translations = {
     
     // Pricing
     'pricing.title': 'Choose Your Plan',
-    'pricing.description': 'Select the perfect service tier for your jewelry needs. Each plan is designed to deliver exceptional value and craftsmanship.',
+    'pricing.description': 'Whether you\'re a jewelry enthusiast or a business owner, we have the perfect plan to meet your needs.',
+    'pricing.forBuyers': 'For Buyers',
+    'pricing.forShopOwners': 'For Shop Owners',
     'pricing.basic.name': 'Basic Explorer',
     'pricing.basic.description': 'Perfect for discovering and trying jewelry',
     'pricing.premium.name': 'Premium Collector',
@@ -334,7 +336,9 @@ const translations = {
     
     // Pricing
     'pricing.title': 'プランを選択',
-    'pricing.description': 'あなたのジュエリーニーズに最適なサービス階層を選択してください。各プランは卓越した価値と職人技を提供するよう設計されています。',
+    'pricing.description': 'ジュエリー愛好家でもビジネスオーナーでも、あなたのニーズに合った完璧なプランをご用意しています。',
+    'pricing.forBuyers': '購入者向け',
+    'pricing.forShopOwners': 'ショップオーナー向け',
     'pricing.basic.name': 'ベーシックエクスプローラー',
     'pricing.basic.description': 'ジュエリーの発見と試着に最適',
     'pricing.premium.name': 'プレミアムコレクター',
