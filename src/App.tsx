@@ -12,6 +12,9 @@ import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import Dashboard from './components/Dashboard';
+import Login from './components/Login';
+import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
 
 const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,6 +62,24 @@ const AppContent: React.FC = () => {
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            user ? <Navigate to="/dashboard" replace /> : <Login />
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            user ? <Navigate to="/dashboard" replace /> : <Register />
+          } 
+        />
+        <Route 
+          path="/forgot-password" 
+          element={
+            user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />
           } 
         />
         <Route path="*" element={<Navigate to="/" replace />} />

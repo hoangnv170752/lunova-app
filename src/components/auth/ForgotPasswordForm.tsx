@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, ArrowLeft, Gem, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, Gem, CheckCircle, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -8,19 +9,33 @@ interface ForgotPasswordFormProps {
 
 const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }) => {
   const { t } = useLanguage();
+  const { resetPassword, isLoading } = useAuth();
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setError('');
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    if (!email) {
+      setError(t('auth.fieldsRequired'));
+      return;
+    }
     
-    setIsLoading(false);
-    setIsEmailSent(true);
+    try {
+      const { success, error } = await resetPassword(email);
+      
+      if (success) {
+        setIsEmailSent(true);
+      } else {
+        console.error('Password reset error:', error);
+        setError(error?.message || t('auth.forgotPassword.error'));
+      }
+    } catch (err) {
+      console.error('Unexpected error during password reset:', err);
+      setError(t('auth.unexpectedError'));
+    }
   };
 
   if (isEmailSent) {
@@ -65,6 +80,13 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onBackToLogin }
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+        
         <div>
           <label className="block text-white font-medium mb-2">{t('auth.email')}</label>
           <div className="relative">

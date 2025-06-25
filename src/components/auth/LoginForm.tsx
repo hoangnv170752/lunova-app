@@ -13,8 +13,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
   const { login, isLoading } = useAuth();
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
-    email: 'admin@lunova.com', // Pre-filled with mock user credentials
-    password: 'lunova123'
+    email: '',
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -23,11 +23,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
     e.preventDefault();
     setError('');
     
-    const success = await login(formData.email, formData.password);
-    if (success) {
-      onSuccess();
-    } else {
-      setError(t('auth.login.error'));
+    if (!formData.email || !formData.password) {
+      setError(t('auth.fieldsRequired'));
+      return;
+    }
+    
+    try {
+      const { success, error } = await login(formData.email, formData.password);
+      
+      if (success) {
+        onSuccess();
+      } else {
+        console.error('Login error:', error);
+        setError(error?.message || t('auth.loginFailed'));
+      }
+    } catch (err) {
+      console.error('Unexpected error during login:', err);
+      setError(t('auth.unexpectedError'));
     }
   };
 
@@ -47,18 +59,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
         </div>
         <h2 className="text-3xl font-bold text-white mb-2">{t('auth.login.title')}</h2>
         <p className="text-gray-300">{t('auth.login.subtitle')}</p>
-      </div>
-
-      {/* Demo credentials info */}
-      <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-4 mb-6">
-        <h3 className="text-yellow-400 font-semibold mb-2">Demo Credentials</h3>
-        <div className="text-sm text-gray-300 space-y-1">
-          <p><strong>Email:</strong> admin@lunova.com</p>
-          <p><strong>Password:</strong> lunova123</p>
-          <p className="text-xs text-gray-400 mt-2">
-            Or use any email/password combination (password must be 6+ characters)
-          </p>
-        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,13 +108,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onSwitchToFor
         </div>
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              className="w-4 h-4 text-yellow-400 bg-gray-800 border-gray-600 rounded focus:ring-yellow-400 focus:ring-2"
-            />
-            <span className="ml-2 text-sm text-gray-300">{t('auth.rememberMe')}</span>
-          </label>
+          <div className="text-sm text-gray-300">
+            {t('auth.secureLogin')}
+          </div>
           <button
             type="button"
             onClick={onSwitchToForgotPassword}

@@ -25,6 +25,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
     e.preventDefault();
     setError('');
     
+    // Validate form inputs
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError(t('auth.fieldsRequired'));
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       setError(t('auth.register.passwordMismatch'));
       return;
@@ -35,11 +41,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onSuccess 
       return;
     }
     
-    const success = await register(formData.name, formData.email, formData.password);
-    if (success) {
-      onSuccess();
-    } else {
-      setError(t('auth.register.error'));
+    try {
+      const { success, error } = await register(formData.name, formData.email, formData.password);
+      
+      if (success) {
+        onSuccess();
+      } else {
+        console.error('Registration error:', error);
+        setError(error?.message || t('auth.register.error'));
+      }
+    } catch (err) {
+      console.error('Unexpected error during registration:', err);
+      setError(t('auth.unexpectedError'));
     }
   };
 
