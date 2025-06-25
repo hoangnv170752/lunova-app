@@ -23,3 +23,38 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# FastAPI specific
+.pytest_cache/
+.coverage
+htmlcov/
+
+# blazingfast-api local files
+blazingfast-api/.env
