@@ -27,41 +27,41 @@ const Dashboard: React.FC = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('users');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  // const [sortBy, setSortBy] = useState('name');
 
   const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, count: null },
-    { id: 'users', label: 'Users', icon: Users, count: 1250, active: true },
-    { id: 'orders', label: 'Orders', icon: Package, count: 89 },
-    { id: 'products', label: 'Products', icon: Gem, count: 156 },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, count: null },
-    { id: 'blogs', label: 'Blogs', icon: FileText, count: 23 },
-    { id: 'tickets', label: 'Tickets', icon: Ticket, count: 12 },
+    { id: 'dashboard', label: t('dashboard.welcome'), icon: BarChart3, count: null },
+    { id: 'users', label: t('nav.users') || 'Users', icon: Users, count: 1250, active: true },
+    { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89 },
+    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156 },
+    { id: 'analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, count: null },
+    { id: 'blogs', label: t('nav.blogs') || 'Blogs', icon: FileText, count: 23 },
+    { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12 },
   ];
 
   const stats = [
     {
-      title: 'Active users',
+      title: t('dashboard.stats.activeUsers') || 'Active users',
       value: '1250',
       change: '-10%',
       changeType: 'negative',
-      subtitle: 'compared to last month',
+      subtitle: t('dashboard.stats.comparedTo') || 'compared to last month',
       icon: '👥'
     },
     {
-      title: 'New Users',
+      title: t('dashboard.stats.newUsers') || 'New Users',
       value: '24',
       change: '+5%',
       changeType: 'positive',
-      subtitle: 'compared to last month',
+      subtitle: t('dashboard.stats.comparedTo') || 'compared to last month',
       icon: '📈'
     },
     {
-      title: 'Total Users',
+      title: t('dashboard.stats.totalUsers') || 'Total Users',
       value: '1301',
       change: '+40%',
       changeType: 'positive',
-      subtitle: 'compared to last month',
+      subtitle: t('dashboard.stats.comparedTo') || 'compared to last month',
       icon: '📊'
     }
   ];
@@ -133,7 +133,7 @@ const Dashboard: React.FC = () => {
             className="w-full flex items-center space-x-3 px-3 py-2 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <LogOut className="h-5 w-5" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium">{t('dashboard.logout')}</span>
           </button>
         </div>
       </div>
@@ -144,7 +144,8 @@ const Dashboard: React.FC = () => {
         <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">User management</h1>
+              <h1 className="text-2xl font-bold text-white">{t('dashboard.userManagement') || 'User management'}</h1>
+              <p className="text-gray-400 text-sm">{t('dashboard.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-4">
               <button className="text-gray-400 hover:text-yellow-400 transition-colors">
@@ -197,27 +198,27 @@ const Dashboard: React.FC = () => {
             <div className="p-6 border-b border-gray-800">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
-                  <h2 className="text-lg font-semibold text-white">Users</h2>
-                  <span className="text-sm text-gray-400">1340 user</span>
+                  <h2 className="text-lg font-semibold text-white">{t('nav.users') || 'Users'}</h2>
+                  <span className="text-sm text-gray-400">1340 {t('dashboard.users') || 'users'}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-300" />
                     <input
                       type="text"
-                      placeholder="Search users..."
+                      placeholder={t('dashboard.searchUsers') || 'Search users...'}
                       className="w-full pl-10 pr-4 py-2 text-sm text-white border border-gray-700 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
                   <button className="flex items-center space-x-2 px-4 py-2 border border-gray-700 rounded-lg hover:bg-gray-900 transition-colors">
-                    <span className="text-sm text-gray-300">Sorting By</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.sortingBy') || 'Sorting By'}</span>
                     <ChevronDown className="h-4 w-4 text-gray-400" />
                   </button>
                   <button className="flex items-center space-x-2 px-4 py-2 border border-gray-700 rounded-lg hover:bg-gray-900 transition-colors">
                     <Filter className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-300">Filters</span>
+                    <span className="text-sm text-gray-300">{t('dashboard.filters') || 'Filters'}</span>
                   </button>
                 </div>
               </div>
@@ -232,24 +233,24 @@ const Dashboard: React.FC = () => {
                       <input type="checkbox" className="rounded border-gray-300" />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      User Name
+                      {t('dashboard.userName') || 'User Name'}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Email Address
+                      {t('dashboard.emailAddress') || 'Email Address'}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      City
+                      {t('dashboard.city') || 'City'}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Account Created date
+                      {t('dashboard.createdAt') || 'Created at'}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Actions
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      {t('dashboard.actions') || 'Actions'}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
-                  {users.map((user, index) => (
+                  {users.map((user) => (
                     <tr key={user.email} className="hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <input type="checkbox" className="rounded border-gray-300" />
@@ -287,7 +288,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <button className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-300 hover:text-yellow-400 transition-colors">
                   <ChevronLeft className="h-4 w-4" />
-                  <span>Previous</span>
+                  <span>{t('dashboard.previous') || 'Previous'}</span>
                 </button>
                 <div className="flex items-center space-x-2">
                   <button className="w-8 h-8 flex items-center justify-center text-sm text-gray-300 hover:bg-gray-800 rounded">
@@ -301,7 +302,7 @@ const Dashboard: React.FC = () => {
                   </button>
                 </div>
                 <button className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-300 hover:text-yellow-400 transition-colors">
-                  <span>Next</span>
+                  <span>{t('dashboard.next') || 'Next'}</span>
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
