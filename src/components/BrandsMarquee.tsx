@@ -18,7 +18,11 @@ const BrandsMarquee: React.FC = () => {
     { name: 'Piaget', type: 'luxury' },
     { name: 'Mikimoto', type: 'pearl' },
     { name: 'David Yurman', type: 'designer' },
-    { name: 'John Hardy', type: 'artisan' }
+    { name: 'John Hardy', type: 'artisan' },
+    { name: 'J.ESTINA', type: 'designer' },           
+    { name: 'STONEHENgE', type: 'designer' },         
+    { name: 'Golden Dew', type: 'luxury' },           
+    { name: 'Minetani', type: 'artisan' },            
   ];
 
   const souvenirs = [
@@ -33,7 +37,11 @@ const BrandsMarquee: React.FC = () => {
     { name: 'Graduation Jewelry', type: 'achievement' },
     { name: 'Baby Keepsakes', type: 'milestone' },
     { name: 'Religious Symbols', type: 'spiritual' },
-    { name: 'Cultural Artifacts', type: 'heritage' }
+    { name: 'Cultural Artifacts', type: 'heritage' },
+    { name: 'Tasaki', type: 'luxury' },              
+    { name: 'AHKAH', type: 'designer' },              
+    { name: '4°C', type: 'personal' },                
+    { name: 'Vendome Aoyama', type: 'designer' },     
   ];
 
   useEffect(() => {
