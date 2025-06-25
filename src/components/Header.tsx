@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu, X, Gem, ShoppingBag, User } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import WeatherDisplay from './WeatherDisplay';
 
 interface HeaderProps {
   isMenuOpen: boolean;
@@ -30,6 +31,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
           </nav>
           
           <div className="flex items-center space-x-4">
+            <WeatherDisplay />
             <LanguageToggle />
             <button className="hidden md:flex items-center space-x-2 bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors">
               <ShoppingBag className="h-4 w-4" />

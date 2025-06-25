@@ -631,7 +631,7 @@ const Pricing: React.FC = () => {
           {planType === 'buyer' && (
             <div 
               ref={tryOnExplanationRef}
-              className="bg-black/50 border border-gray-800 rounded-xl p-8 max-w-4xl mx-auto relative overflow-hidden group"
+              className="bg-black/50 border border-gray-800 rounded-xl p-8 max-w-6xl mx-auto relative overflow-hidden group"
             >
               {/* Animated background elements */}
               <div className="absolute top-4 right-4 w-2 h-2 bg-yellow-400/30 rounded-full animate-pulse"></div>
@@ -719,7 +719,7 @@ const Pricing: React.FC = () => {
           {planType === 'business' && (
             <div 
               ref={businessHighlightsRef}
-              className="bg-black/50 border border-gray-800 rounded-xl p-8 max-w-4xl mx-auto relative overflow-hidden"
+              className="bg-black/50 border border-gray-800 rounded-xl p-8 max-w-6xl mx-auto relative overflow-hidden"
             >
               {/* Animated background */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-yellow-400/5 to-transparent rounded-full"></div>

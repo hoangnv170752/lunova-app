@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Star, Award } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import AuthModal from './auth/AuthModal';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -11,6 +12,7 @@ gsap.registerPlugin(ScrollTrigger);
 const Hero: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   // Refs for GSAP animations
@@ -204,14 +206,20 @@ const Hero: React.FC = () => {
 
   const handleGetStarted = () => {
     // Add click animation
-    gsap.to(buttonsRef.current?.querySelector('button'), {
-      scale: 0.95,
-      duration: 0.1,
-      yoyo: true,
-      repeat: 1,
-      ease: "power2.inOut",
-      onComplete: () => setIsAuthModalOpen(true)
-    });
+    const button = buttonsRef.current?.querySelector('button');
+    if (button) {
+      gsap.to(button, {
+        scale: 0.95,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.inOut",
+        onComplete: () => setIsAuthModalOpen(true)
+      });
+    } else {
+      // If button doesn't exist, just open the modal
+      setIsAuthModalOpen(true);
+    }
   };
 
   const handleAuthSuccess = () => {
@@ -224,11 +232,11 @@ const Hero: React.FC = () => {
       duration: 0.3,
       yoyo: true,
       repeat: 1,
-      ease: "power2.inOut"
+      ease: "power2.inOut",
+      onComplete: () => {
+        navigate('/dashboard');
+      }
     });
-
-    // The navigation will be handled by the App component's useEffect
-    // when it detects the user state change
   };
 
   const addToFloatingRefs = (el: HTMLDivElement | null) => {

@@ -197,7 +197,7 @@ const translations = {
     'footer.contactInfo': 'Contact Info',
     'footer.newsletter': 'Newsletter',
     'footer.newsletterPlaceholder': 'Your email',
-    'footer.copyright': '© 2024 Lunova Jewelry. All rights reserved.',
+    'footer.copyright': '© 2025 Lunova Co. All rights reserved.',
     'footer.privacy': 'Privacy Policy',
     'footer.terms': 'Terms of Service',
     'footer.shipping': 'Shipping & Returns'
@@ -388,7 +388,7 @@ const translations = {
     'footer.contactInfo': '連絡先情報',
     'footer.newsletter': 'ニュースレター',
     'footer.newsletterPlaceholder': 'メールアドレス',
-    'footer.copyright': '© 2024 Lunova Jewelry. All rights reserved.',
+    'footer.copyright': '© 2025 Lunova Co. All rights reserved.',
     'footer.privacy': 'プライバシーポリシー',
     'footer.terms': '利用規約',
     'footer.shipping': '配送・返品'
