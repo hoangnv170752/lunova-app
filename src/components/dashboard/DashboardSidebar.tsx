@@ -63,7 +63,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   }, [user]);
 
   const sidebarItems: SidebarItem[] = [
-    { id: 'orders', label: t('dashboard.recentOrders') || 'Recent Orders', icon: Package, count: 89 },
+    { id: 'orders', label: t('dashboard.recentOrders') || 'Recent Orders', icon: Package, count: 0, route: '/dashboard' },
     { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: productCount, route: '/dashboard/product' },
     { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: shopCount, route: '/dashboard/shop' },
     { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: ticketCount, route: '/dashboard/ticket' },
