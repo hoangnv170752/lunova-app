@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL}
+      - VITE_OPENWEATHER_KEY=${VITE_OPENWEATHER_KEY}
+    restart: always
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+    networks:
+      - lunova-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lunova
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lunova-network
+
+networks:
+  lunova-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
