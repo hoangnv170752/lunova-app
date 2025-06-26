@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 
 from models import Base, engine
-from routes import product_router, shop_router
+from routes import product_router, shop_router, product_image_router, product_tryon_image_router, storage_router
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +32,9 @@ app.add_middleware(
 # Include routers
 app.include_router(product_router)
 app.include_router(shop_router)
+app.include_router(product_image_router)
+app.include_router(product_tryon_image_router)
+app.include_router(storage_router)
 
 # Root endpoint
 @app.get("/")
