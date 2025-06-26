@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import UserSettingsModal from '../modals/UserSettingsModal';
 import WeatherDisplay from '../WeatherDisplay';
+import DashboardSidebar from './DashboardSidebar';
 import { 
   Search, 
   Filter, 
@@ -16,28 +16,17 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
-  LogOut,
-  Package,
-  Gem,
-  Ticket,
-  Bell,
-  Store
+  Bell
 } from 'lucide-react';
 
 const TicketDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('tickets');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  const sidebarItems = [
-    { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89, route: '/dashboard' },
-    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156, route: '/dashboard/product' },
-    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: 0, route: '/dashboard/shop' },
-    { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
-  ];
+  // No longer need to track ticket count as sidebar handles it internally
 
   // Sample ticket data
   const tickets = [
@@ -231,65 +220,10 @@ const TicketDashboard: React.FC = () => {
         />
       )}
       {/* Sidebar */}
-      <div className="w-64 flex flex-col bg-gray-900 border-r border-gray-800">
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-              <Gem className="h-5 w-5 text-black" />
-            </div>
-            <span className="text-xl font-bold text-white lunova-brand">Lunova</span>
-          </div>
-        </div>
-
-        {/* No Weather Widget in sidebar */}
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {sidebarItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    if (item.route) {
-                      navigate(item.route);
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
-                    item.id === activeTab
-                      ? 'bg-yellow-400/10 text-yellow-400 border-r-2 border-yellow-400'
-                      : 'text-gray-300 hover:bg-gray-800'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <item.icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </div>
-                  {item.count && (
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      item.id === activeTab ? 'bg-yellow-400/20 text-yellow-400' : 'bg-gray-800 text-gray-300'
-                    }`}>
-                      {item.count}
-                    </span>
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-gray-800">
-          <button
-            onClick={logout}
-            className="w-full flex items-center space-x-3 px-3 py-2 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="font-medium">{t('dashboard.logout')}</span>
-          </button>
-        </div>
-      </div>
+      <DashboardSidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">

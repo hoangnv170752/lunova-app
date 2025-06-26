@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useNavigate } from 'react-router-dom';
 import UserSettingsModal from './modals/UserSettingsModal';
 import WeatherDisplay from './WeatherDisplay';
+import DashboardSidebar from './dashboard/DashboardSidebar';
 import { 
-  LogOut, 
-  Package, 
-  Gem, 
-  Ticket, 
-  Search, 
-  Filter, 
-  ChevronDown, 
-  ChevronLeft, 
-  ChevronRight,
   Bell,
   TrendingUp,
   TrendingDown,
   User,
   MoreHorizontal,
-  Store
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('users');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,17 +27,6 @@ const Dashboard: React.FC = () => {
   const [productCount, setProductCount] = useState(0);
   const [, setIsLoading] = useState(true);
   // const [sortBy, setSortBy] = useState('name');
-
-  const sidebarItems = [
-    // { id: 'dashboard', label: t('dashboard.welcome'), icon: BarChart3, count: null },
-    // { id: 'users', label: t('nav.users') || 'Users', icon: Users, count: 1250, active: true },
-    { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89 },
-    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: productCount, route: '/dashboard/product' },
-    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: shopCount, route: '/dashboard/shop' },
-    // { id: 'analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, count: null },
-    // { id: 'blogs', label: t('nav.blogs') || 'Blogs', icon: FileText, count: 23 },
-    { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
-  ];
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -126,63 +109,10 @@ const Dashboard: React.FC = () => {
         />
       )}
       {/* Sidebar */}
-      <div className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-              <Gem className="h-5 w-5 text-black" />
-            </div>
-            <span className="text-xl font-bold text-white lunova-brand">Lunova</span>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {sidebarItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    if (item.route) {
-                      navigate(item.route);
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
-                    item.id === activeTab
-                      ? 'bg-yellow-400/10 text-yellow-400 border-r-2 border-yellow-400'
-                      : 'text-gray-300 hover:bg-gray-800'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <item.icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </div>
-                  {item.count && (
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      item.id === activeTab ? 'bg-yellow-400/20 text-yellow-400' : 'bg-gray-800 text-gray-300'
-                    }`}>
-                      {item.count}
-                    </span>
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-gray-800">
-          <button
-            onClick={logout}
-            className="w-full flex items-center space-x-3 px-3 py-2 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="font-medium">{t('dashboard.logout')}</span>
-          </button>
-        </div>
-      </div>
+      <DashboardSidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
@@ -190,7 +120,7 @@ const Dashboard: React.FC = () => {
         <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">{t('dashboard.title') || 'Dashboard'}</h1>
+              <h1 className="text-2xl font-bold text-white">{t('Dashboard') || 'Dashboard'}</h1>
               <p className="text-gray-400 text-sm">{t('dashboard.subtitle') || 'Welcome to your dashboard'}</p>
             </div>
             <div className="flex items-center space-x-4">
