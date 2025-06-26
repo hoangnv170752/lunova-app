@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { LogOut, Package, Gem, Ticket, Store, LucideIcon } from 'lucide-react';
+import chibiImage from '../../assets/chibi.png';
+import chibi2Image from '../../assets/chibi2.png';
 
 interface SidebarItem {
   id: string;
@@ -78,6 +80,37 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <Gem className="h-5 w-5 text-black" />
           </div>
           <span className="text-xl font-bold text-white lunova-brand">Lunova</span>
+        </div>
+      </div>
+
+      {/* Chibi decorations in fan shape */}
+      <div className="px-6 py-3 flex justify-center space-x-2">
+        {/* First chibi image */}
+        <div className="relative">
+          <img 
+            src={chibiImage} 
+            alt="Chibi character 1" 
+            className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+            style={{ 
+              filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+              animation: 'bounce 3s ease-in-out infinite',
+              transform: 'rotate(-15deg)'
+            }}
+          />
+        </div>
+        
+        {/* Second chibi image */}
+        <div className="relative">
+          <img 
+            src={chibi2Image} 
+            alt="Chibi character 2" 
+            className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+            style={{ 
+              filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+              animation: 'bounce 3s ease-in-out infinite 0.5s',
+              transform: 'rotate(15deg)'
+            }}
+          />
         </div>
       </div>
 
