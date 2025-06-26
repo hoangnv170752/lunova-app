@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -107,32 +107,32 @@ const ProductDashboard: React.FC = () => {
     { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
   ];
 
-  // Fetch products and shops when component mounts
-  useEffect(() => {
-    // Temporarily disabled fetchProducts
-    // const fetchProducts = async () => {
-    //   try {
-    //     setLoading(true);
-    //     // Build URL with query parameters if shop_id is selected
-    //     let url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/`;
-    //     if (selectedShopId) {
-    //       url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/?shop_id=${selectedShopId}`;
-    //     }
-    //     
-    //     const response = await fetch(url);
-    //     if (!response.ok) {
-    //       throw new Error('Failed to fetch products');
-    //     }
-    //     const data = await response.json();
-    //     setProducts(data);
-    //   } catch (err: unknown) {
-    //     setError(t('dashboard.errorFetchingProducts') || 'Error fetching products. Please try again later.');
-    //     console.error('Error fetching products:', err);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
+  // Function to fetch products based on shop ID
+  const fetchProducts = useCallback(async (shopId: string) => {
+    try {
+      setLoading(true);
+      // Build URL with query parameters if shop_id is selected
+      let url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/`;
+      if (shopId) {
+        url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/?shop_id=${shopId}`;
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      setProducts(data);
+    } catch (err: unknown) {
+      setError(t('dashboard.errorFetchingProducts') || 'Error fetching products. Please try again later.');
+      console.error('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [t, setLoading, setProducts, setError]);
 
+  // Fetch shops when component mounts
+  useEffect(() => {
     const fetchShops = async () => {
       try {
         if (user?.id) {
@@ -141,21 +141,23 @@ const ProductDashboard: React.FC = () => {
             throw new Error('Failed to fetch shops');
           }
           const data = await response.json();
-          setShops(data.map((shop: {id: string, name: string}) => ({ id: shop.id, name: shop.name })));
+          const shopsList = data.map((shop: {id: string, name: string}) => ({ id: shop.id, name: shop.name }));
+          setShops(shopsList);
+          
+          // Automatically select the first shop and fetch its products
+          if (shopsList.length > 0) {
+            const firstShopId = shopsList[0].id;
+            setSelectedShopId(firstShopId);
+            fetchProducts(firstShopId);
+          }
         }
       } catch (err) {
         console.error('Error fetching shops:', err);
       }
     };
 
-    // Temporarily disabled fetchProducts call
-    // fetchProducts();
-    // Set loading to false since we're not fetching products
-    setLoading(false);
-    // Initialize with empty products array for testing
-    setProducts([]);
     fetchShops();
-  }, [user?.id, t, selectedShopId]);
+  }, [user?.id, t, fetchProducts]);
   
   // Handle input changes in the form
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -809,9 +811,9 @@ const ProductDashboard: React.FC = () => {
                       <div className="text-sm text-gray-300">{product.category}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">${product.price.toFixed(2)}</div>
+                      <div className="text-sm text-gray-300">${parseFloat(product.price.toString()).toFixed(2)}</div>
                       {product.is_on_sale && product.sale_price && (
-                        <div className="text-xs text-yellow-400">Sale: ${product.sale_price.toFixed(2)}</div>
+                        <div className="text-xs text-yellow-400">Sale: ${parseFloat(product.sale_price.toString()).toFixed(2)}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

@@ -38,12 +38,23 @@ const LandingPage: React.FC = () => {
 };
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  
+  // If auth is still loading, show nothing or a loading spinner
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+      </div>
+    );
+  }
+  
+  // Only redirect if we're sure the user is not authenticated
   return user ? <>{children}</> : <Navigate to="/landing" replace />;
 };
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   return (
     <Router>
@@ -52,8 +63,12 @@ const AppContent: React.FC = () => {
         <Route 
           path="/" 
           element={
-            user ? (
-              <Navigate to="/dashboard" replace />
+            isLoading ? (
+              <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+              </div>
+            ) : user ? (
+              <Navigate to="/dashboard/product" replace />
             ) : (
               <Navigate to="/landing" replace />
             )
@@ -94,19 +109,31 @@ const AppContent: React.FC = () => {
         <Route 
           path="/login" 
           element={
-            user ? <Navigate to="/dashboard" replace /> : <Login />
+            isLoading ? (
+              <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+              </div>
+            ) : user ? <Navigate to="/dashboard/product" replace /> : <Login />
           } 
         />
         <Route 
           path="/register" 
           element={
-            user ? <Navigate to="/dashboard" replace /> : <Register />
+            isLoading ? (
+              <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+              </div>
+            ) : user ? <Navigate to="/dashboard/product" replace /> : <Register />
           } 
         />
         <Route 
           path="/forgot-password" 
           element={
-            user ? <Navigate to="/dashboard" replace /> : <ForgotPassword />
+            isLoading ? (
+              <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+              </div>
+            ) : user ? <Navigate to="/dashboard/product" replace /> : <ForgotPassword />
           } 
         />
         <Route path="*" element={<Navigate to="/" replace />} />

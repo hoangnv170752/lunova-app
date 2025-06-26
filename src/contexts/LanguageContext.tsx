@@ -140,6 +140,12 @@ const translations = {
     'dashboard.tickets.to': 'to',
     'dashboard.tickets.of': 'of',
     'dashboard.tickets.results': 'results',
+    'dashboard.loading': 'Loading...',
+    'dashboard.error': 'Error',
+    'dashboard.success': 'Success',
+    'dashboard.warning': 'Warning',
+    'dashboard.info': 'Info',
+    'dashboard.filter': 'Filter',
 
     // Shop Management
     'nav.shops': 'Shops',
@@ -514,6 +520,12 @@ const translations = {
     'dashboard.tickets.to': 'から',
     'dashboard.tickets.of': 'の',
     'dashboard.tickets.results': '結果',
+    'dashboard.loading': 'ローディング...',
+    'dashboard.error': 'エラー',
+    'dashboard.success': '成功',
+    'dashboard.warning': '警告',
+    'dashboard.info': '情報',
+    'dashboard.filter': 'フィルター',
     
     // Shop Management
     'nav.shops': 'ショップ',

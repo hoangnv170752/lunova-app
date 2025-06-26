@@ -116,7 +116,7 @@ const ShopDashboard: React.FC = () => {
         setLoading(true);
         // Replace with your actual API endpoint
         let url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/`;
-        
+        console.log(url)
         // If user is logged in and not an admin, only fetch their shops
         if (user && user.id) {
           url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/?owner_id=${user.id}`;
