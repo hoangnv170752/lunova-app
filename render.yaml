@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: lunova-api
+    env: python
+    buildCommand: cd blazingfast-api && pip install -r requirements.txt
+    startCommand: cd blazingfast-api && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: POSTGRES_URL
+        sync: false
+      - key: VITE_OPENWEATHER_KEY
+        sync: false

@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import Dashboard from './components/Dashboard';
 import ProductDashboard from './components/dashboard/ProductDashboard';
 import TicketDashboard from './components/dashboard/TicketDashboard';
+import ShopDashboard from './components/dashboard/ShopDashboard';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
@@ -79,6 +80,14 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <TicketDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard/shop" 
+          element={
+            <ProtectedRoute>
+              <ShopDashboard />
             </ProtectedRoute>
           } 
         />

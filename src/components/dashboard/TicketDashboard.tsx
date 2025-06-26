@@ -20,7 +20,8 @@ import {
   Package,
   Gem,
   Ticket,
-  Bell
+  Bell,
+  Store
 } from 'lucide-react';
 
 const TicketDashboard: React.FC = () => {
@@ -34,6 +35,7 @@ const TicketDashboard: React.FC = () => {
   const sidebarItems = [
     { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89, route: '/dashboard' },
     { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156, route: '/dashboard/product' },
+    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: 0, route: '/dashboard/shop' },
     { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
   ];
 
@@ -240,10 +242,7 @@ const TicketDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Weather Widget */}
-        <div className="p-4 border-b border-gray-800">
-          <WeatherDisplay />
-        </div>
+        {/* No Weather Widget in sidebar */}
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
@@ -302,6 +301,8 @@ const TicketDashboard: React.FC = () => {
               <p className="text-gray-400 text-sm">{t('dashboard.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-4">
+              <WeatherDisplay />
+              
               <button className="text-gray-400 hover:text-yellow-400 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>

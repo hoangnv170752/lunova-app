@@ -18,7 +18,8 @@ import {
   TrendingUp,
   TrendingDown,
   User,
-  MoreHorizontal
+  MoreHorizontal,
+  Store
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
@@ -35,6 +36,7 @@ const Dashboard: React.FC = () => {
     // { id: 'users', label: t('nav.users') || 'Users', icon: Users, count: 1250, active: true },
     { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89 },
     { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156, route: '/dashboard/product' },
+    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: 0, route: '/dashboard/shop' },
     // { id: 'analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, count: null },
     // { id: 'blogs', label: t('nav.blogs') || 'Blogs', icon: FileText, count: 23 },
     { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
