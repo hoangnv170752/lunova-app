@@ -5,3 +5,5 @@ pydantic==2.4.2
 psycopg2-binary==2.9.9
 python-dotenv==1.0.0
 httpx==0.25.0
+requests==2.31.0
+python-multipart==0.0.6
