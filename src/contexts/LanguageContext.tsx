@@ -225,6 +225,10 @@ const translations = {
     'dashboard.confirmDeleteProduct': 'Are you sure you want to delete this product?',
     'dashboard.selectShop': 'Please select a shop for this product',
     'dashboard.errorSavingShop': 'Error saving shop. Please try again later.',
+    'dashboard.shopLocation': 'Shop Locations',
+    'dashboard.shopCreated': 'Shop Creation',
+    'dashboard.shopUpdated': 'Shop Update',
+    'dashboard.shopActions': 'Shop Actions',
 
     // Settings Modal
     'settings.title': 'Settings',
@@ -530,6 +534,9 @@ const translations = {
     'dashboard.filter': 'フィルター',
     'dashboard.totalShops': 'ショプ',
     'dashboard.totalProducts': '製品',
+    'dashboard.shopLocation': '場所',
+    'dashboard.shopCreated': '作成日',
+    'dashboard.shopUpdated': '更新日',
     
     // Shop Management
     'nav.shops': 'ショップ',
