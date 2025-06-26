@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -29,41 +29,76 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [shopCount, setShopCount] = useState(0);
+  const [productCount, setProductCount] = useState(0);
+  const [, setIsLoading] = useState(true);
   // const [sortBy, setSortBy] = useState('name');
 
   const sidebarItems = [
     // { id: 'dashboard', label: t('dashboard.welcome'), icon: BarChart3, count: null },
     // { id: 'users', label: t('nav.users') || 'Users', icon: Users, count: 1250, active: true },
     { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89 },
-    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156, route: '/dashboard/product' },
-    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: 0, route: '/dashboard/shop' },
+    { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: productCount, route: '/dashboard/product' },
+    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: shopCount, route: '/dashboard/shop' },
     // { id: 'analytics', label: t('nav.analytics') || 'Analytics', icon: BarChart3, count: null },
     // { id: 'blogs', label: t('nav.blogs') || 'Blogs', icon: FileText, count: 23 },
     { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
   ];
 
+  useEffect(() => {
+    const fetchCounts = async () => {
+      setIsLoading(true);
+      try {
+        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        let shopsUrl = `${baseUrl}/shops/`;
+        if (user && user.id) {
+          shopsUrl = `${baseUrl}/shops/?owner_id=${user.id}`;
+        }
+        
+        const shopsResponse = await fetch(shopsUrl);
+        if (shopsResponse.ok) {
+          const shopsData = await shopsResponse.json();
+          setShopCount(shopsData.length);
+        }
+        
+        const productsUrl = `${baseUrl}/products/`;
+        const productsResponse = await fetch(productsUrl);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          setProductCount(productsData.length);
+        }
+      } catch (error) {
+        console.error('Error fetching counts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCounts();
+  }, [user]);
+
   const stats = [
     {
-      title: t('dashboard.stats.activeUsers') || 'Active users',
-      value: '1250',
-      change: '-10%',
-      changeType: 'negative',
-      subtitle: t('dashboard.stats.comparedTo') || 'compared to last month',
-      icon: '👥'
+      title: t('nav.shops') || 'Shops',
+      value: shopCount.toString(),
+      change: '',
+      changeType: 'neutral',
+      subtitle: t('dashboard.totalShops') || 'total shops',
+      icon: '🏪'
     },
     {
-      title: t('dashboard.stats.newUsers') || 'New Users',
-      value: '24',
-      change: '+5%',
-      changeType: 'positive',
-      subtitle: t('dashboard.stats.comparedTo') || 'compared to last month',
-      icon: '📈'
+      title: t('nav.products') || 'Products',
+      value: productCount.toString(),
+      change: '',
+      changeType: 'neutral',
+      subtitle: t('dashboard.totalProducts') || 'total products',
+      icon: '📦'
     },
     {
-      title: t('dashboard.stats.totalUsers') || 'Total Users',
-      value: '1301',
-      change: '+40%',
-      changeType: 'positive',
+      title: t('dashboard.recentOrders') || 'Orders',
+      value: '89',
+      change: '',
+      changeType: 'neutral',
       subtitle: t('dashboard.stats.comparedTo') || 'compared to last month',
       icon: '📊'
     }
@@ -155,8 +190,8 @@ const Dashboard: React.FC = () => {
         <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">{t('dashboard.tickets.title') || 'Support Tickets'}</h1>
-              <p className="text-gray-400 text-sm">{t('dashboard.subtitle')}</p>
+              <h1 className="text-2xl font-bold text-white">{t('dashboard.title') || 'Dashboard'}</h1>
+              <p className="text-gray-400 text-sm">{t('dashboard.subtitle') || 'Welcome to your dashboard'}</p>
             </div>
             <div className="flex items-center space-x-4">
               <WeatherDisplay />

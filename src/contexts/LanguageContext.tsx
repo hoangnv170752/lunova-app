@@ -146,6 +146,8 @@ const translations = {
     'dashboard.warning': 'Warning',
     'dashboard.info': 'Info',
     'dashboard.filter': 'Filter',
+    'dashboard.totalShops': 'Total Shops',
+    'dashboard.totalProducts': 'Total Products',
 
     // Shop Management
     'nav.shops': 'Shops',
@@ -526,6 +528,8 @@ const translations = {
     'dashboard.warning': '警告',
     'dashboard.info': '情報',
     'dashboard.filter': 'フィルター',
+    'dashboard.totalShops': 'ショプ',
+    'dashboard.totalProducts': '製品',
     
     // Shop Management
     'nav.shops': 'ショップ',
