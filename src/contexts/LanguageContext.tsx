@@ -82,6 +82,7 @@ const translations = {
     'auth.login.subtitle': 'Sign in to your account to continue',
     
     // Dashboard
+    'dashboard.create': 'Create',
     'dashboard.dashboard': 'Dashboard',
     'dashboard.welcome': 'Welcome back',
     'dashboard.subtitle': 'Manage your jewelry collection and orders',
@@ -456,6 +457,7 @@ const translations = {
     'auth.login.subtitle': 'アカウントにサインインして続行',
     
     // Dashboard
+    'dashboard.create': '成功する',
     'dashboard.dashboard': 'ダッシュボード',
     'dashboard.welcome': 'おかえりなさい',
     'dashboard.subtitle': 'ジュエリーコレクションと注文を管理',

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { gsap } from 'gsap';
 import { Sparkles, TrendingUp, DollarSign, Users, Award, AlertCircle } from 'lucide-react';
 
@@ -21,6 +22,7 @@ interface InsightResponse {
 
 const MarketInsights: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [category, setCategory] = useState<string>('jewelry');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,6 +128,19 @@ const MarketInsights: React.FC = () => {
       console.log(data.insights);
       setInsights(data.insights);
       
+      // Save to local storage
+      try {
+        const storageKey = `market_insights_${user?.id}_${selectedCategory}`;
+        const storageData = {
+          insights: data.insights,
+          timestamp: new Date().getTime()
+        };
+        localStorage.setItem(storageKey, JSON.stringify(storageData));
+        console.log('Market insights saved to local storage');
+      } catch (error) {
+        console.error('Error saving to local storage:', error);
+      }
+      
       // Wait for next render cycle before animating
       setTimeout(() => {
         if (document.body.contains(insightCardRef.current)) {
@@ -138,7 +153,7 @@ const MarketInsights: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [category, insights, loading]);  // Add dependencies to prevent unnecessary fetches
+  }, [category, insights, loading, user?.id]);  // Add dependencies to prevent unnecessary fetches
   
   // Handle category change
   const handleCategoryChange = (newCategory: string) => {
@@ -149,13 +164,50 @@ const MarketInsights: React.FC = () => {
   // Track if component is mounted
   const isMounted = useRef(false);
   
+  // Load insights from local storage on mount
   useEffect(() => {
-    // Only fetch on first mount
+    const loadFromLocalStorage = () => {
+      try {
+        // Create a unique key based on user ID and category
+        const storageKey = `market_insights_${user?.id}_${category}`;
+        const storedData = localStorage.getItem(storageKey);
+        
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+          const storedTimestamp = parsedData.timestamp;
+          const currentTime = new Date().getTime();
+          
+          // Check if data is less than 24 hours old
+          if (currentTime - storedTimestamp < 24 * 60 * 60 * 1000) {
+            console.log('Loading market insights from local storage');
+            setInsights(parsedData.insights);
+            
+            // Animate after a short delay to ensure DOM is ready
+            setTimeout(() => {
+              if (document.body.contains(insightCardRef.current)) {
+                animateInsights();
+              }
+            }, 100);
+            
+            return true; // Data was loaded from storage
+          }
+        }
+        return false; // No valid data in storage
+      } catch (error) {
+        console.error('Error loading from local storage:', error);
+        return false;
+      }
+    };
+    
+    // Only fetch on first mount or if local storage doesn't have valid data
     if (!isMounted.current) {
-      fetchInsights(category);
+      const loadedFromStorage = loadFromLocalStorage();
+      if (!loadedFromStorage) {
+        fetchInsights(category);
+      }
       isMounted.current = true;
     }
-  }, [fetchInsights, category]);
+  }, [fetchInsights, category, user?.id]);
   
   return (
     <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden" ref={insightCardRef}>
