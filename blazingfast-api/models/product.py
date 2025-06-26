@@ -23,5 +23,5 @@ class Product(Base):
     is_on_sale = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
-    shop_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    shop_id = Column(UUID(as_uuid=True), ForeignKey("shops.id", ondelete="CASCADE"))
     product_metadata = Column("metadata", JSON, default={})

@@ -101,9 +101,6 @@ const Dashboard: React.FC = () => {
             <span className="text-xl font-bold text-white lunova-brand">Lunova</span>
           </div>
         </div>
-        <div className="p-4 border-b border-gray-800">
-          <WeatherDisplay />
-        </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
@@ -158,10 +155,12 @@ const Dashboard: React.FC = () => {
         <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">{t('dashboard.userManagement') || 'User management'}</h1>
+              <h1 className="text-2xl font-bold text-white">{t('dashboard.tickets.title') || 'Support Tickets'}</h1>
               <p className="text-gray-400 text-sm">{t('dashboard.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-4">
+              <WeatherDisplay />
+              
               <button className="text-gray-400 hover:text-yellow-400 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>

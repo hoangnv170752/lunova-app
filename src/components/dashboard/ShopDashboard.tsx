@@ -11,15 +11,14 @@ import {
   Trash2, 
   Search, 
   Filter, 
-  CheckCircle, 
   AlertCircle,
   LogOut,
   Package,
   Gem,
   Ticket,
   Bell,
-  ChevronDown, 
-  User
+  Mail,
+  Phone,
 } from 'lucide-react';
 
 interface SocialMedia {
@@ -97,12 +96,16 @@ const ShopDashboard: React.FC = () => {
       website: ''
     }
   });
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);// Filter shops based on search query
+  const filteredShops = shops.filter(shop => 
+    shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    shop.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
   const sidebarItems = [
     { id: 'orders', label: t('dashboard.recentOrders'), icon: Package, count: 89, route: '/dashboard' },
     { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: 156, route: '/dashboard/product' },
-    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: 0, route: '/dashboard/shop' },
+    { id: 'shops', label: t('nav.shops') || 'Shops', icon: Store, count: filteredShops.length, route: '/dashboard/shop' },
     { id: 'tickets', label: t('nav.tickets') || 'Tickets', icon: Ticket, count: 12, route: '/dashboard/ticket' },
   ];
 
@@ -112,11 +115,11 @@ const ShopDashboard: React.FC = () => {
       try {
         setLoading(true);
         // Replace with your actual API endpoint
-        let url = 'http://localhost:8000/shops/';
+        let url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/`;
         
         // If user is logged in and not an admin, only fetch their shops
         if (user && user.id) {
-          url = `http://localhost:8000/shops/?owner_id=${user.id}`;
+          url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/?owner_id=${user.id}`;
         }
         
         const response = await fetch(url);
@@ -138,17 +141,13 @@ const ShopDashboard: React.FC = () => {
     fetchShops();
   }, [user]);
 
-  // Filter shops based on search query
-  const filteredShops = shops.filter(shop => 
-    shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    shop.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  
 
   // Handle shop deletion
   const handleDeleteShop = async (shopId: string) => {
     if (window.confirm(t('dashboard.confirmDeleteShop') || 'Are you sure you want to delete this shop?')) {
       try {
-        const response = await fetch(`http://localhost:8000/shops/${shopId}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/${shopId}`, {
           method: 'DELETE',
         });
 
@@ -201,8 +200,8 @@ const ShopDashboard: React.FC = () => {
       };
 
       const url = editingShop 
-        ? `http://localhost:8000/shops/${editingShop.id}` 
-        : 'http://localhost:8000/shops/';
+        ? `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/${editingShop.id}` 
+        : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/`;
       
       const method = editingShop ? 'PUT' : 'POST';
 
@@ -355,25 +354,28 @@ const ShopDashboard: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">{t('dashboard.shops')}</h1>
-          
-          <div className="flex items-center space-x-4">
-            <WeatherDisplay />
-            
-            <button className="text-gray-400 hover:text-white">
-              <Bell className="h-5 w-5" />
-            </button>
-            
-            <button 
-              onClick={() => setIsSettingsModalOpen(true)}
-              className="flex items-center space-x-2 text-gray-400 hover:text-white"
-            >
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                <User className="h-5 w-5" />
-              </div>
-              <ChevronDown className="h-4 w-4" />
-            </button>
+        <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white">{t('dashboard.tickets.title') || 'Support Tickets'}</h1>
+              <p className="text-gray-400 text-sm">{t('dashboard.subtitle')}</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <WeatherDisplay />
+              
+              <button className="text-gray-400 hover:text-yellow-400 transition-colors">
+                <Bell className="h-5 w-5" />
+              </button>
+              <button 
+                onClick={() => setIsSettingsModalOpen(true)}
+                className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 transition-colors rounded-full p-1 pr-4"
+              >
+                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <span className="text-black font-medium">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                </div>
+                <span className="text-sm text-gray-300">{user?.email?.split('@')[0] || 'User'}</span>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -452,7 +454,7 @@ const ShopDashboard: React.FC = () => {
                       <tr>
                         <th scope="col" className="px-6 py-3">{t('dashboard.shopName')}</th>
                         <th scope="col" className="px-6 py-3">{t('dashboard.shopLocation')}</th>
-                        <th scope="col" className="px-6 py-3">{t('dashboard.verificationStatus')}</th>
+                        <th scope="col" className="px-6 py-3">{t('dashboard.contactInformation')}</th>
                         <th scope="col" className="px-6 py-3">{t('dashboard.shopCreated')}</th>
                         <th scope="col" className="px-6 py-3">{t('dashboard.actions')}</th>
                       </tr>
@@ -474,15 +476,23 @@ const ShopDashboard: React.FC = () => {
                             {shop.city}, {shop.country}
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 text-xs rounded-full ${shop.is_verified ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-300'}`}>
-                              {shop.is_verified ? (
-                                <span className="flex items-center">
-                                  <CheckCircle className="h-3 w-3 mr-1" /> {t('dashboard.verified') || 'Verified'}
-                                </span>
-                              ) : (
-                                t('dashboard.unverified') || 'Unverified'
+                            <div className="flex flex-col">
+                              {shop.contact_email && (
+                                <div className="flex items-center text-xs mb-1">
+                                  <Mail className="h-3 w-3 mr-1 text-gray-400" />
+                                  <span className="text-gray-300">{shop.contact_email}</span>
+                                </div>
                               )}
-                            </span>
+                              {shop.contact_phone && (
+                                <div className="flex items-center text-xs">
+                                  <Phone className="h-3 w-3 mr-1 text-gray-400" />
+                                  <span className="text-gray-300">{shop.contact_phone}</span>
+                                </div>
+                              )}
+                              {!shop.contact_email && !shop.contact_phone && (
+                                <span className="text-gray-500 text-xs italic">{t('dashboard.noContactInfo')}</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-gray-400 text-sm">
@@ -519,7 +529,7 @@ const ShopDashboard: React.FC = () => {
           {/* Create/Edit Shop Modal */}
           {(showCreateModal || editingShop) && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-gray-900/90 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden">
+              <div className="bg-gray-900/90 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
                 {/* Modal Header - macOS style */}
                 <div className="bg-gray-800/80 px-6 py-4 border-b border-gray-700 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -544,163 +554,167 @@ const ShopDashboard: React.FC = () => {
                 </div>
                 
                 {/* Modal Body */}
-                <form onSubmit={handleSubmit} className="p-6">
+                <form onSubmit={handleSubmit} className="p-4">
                   {error && (
-                    <div className="mb-4 p-3 bg-red-900/30 border border-red-800 rounded-lg text-red-400">
+                    <div className="mb-3 p-2 bg-red-900/30 border border-red-800 rounded-lg text-red-400 text-sm">
                       {error}
                     </div>
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <p className="text-sm text-gray-400 mb-3">
+                    {editingShop ? t('dashboard.editShopDescription') : t('dashboard.createShopDescription')}
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Basic Information */}
                     <div className="md:col-span-2">
-                      <h3 className="text-md font-medium text-gray-200 mb-3">{t('dashboard.basicInformation') || 'Basic Information'}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <h3 className="text-sm font-medium text-gray-200 mb-2">{t('dashboard.basicInformation')}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.shopName') || 'Shop Name'} *</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.shopName')} *</label>
                           <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleInputChange}
                             required
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.shopDescription') || 'Description'} *</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.shopDescription')} *</label>
                           <input
                             type="text"
                             name="description"
                             value={formData.description}
                             onChange={handleInputChange}
                             required
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                       </div>
                     </div>
                     
                     {/* Media */}
-                    <div className="md:col-span-2">
-                      <h3 className="text-md font-medium text-gray-200 mb-3">{t('dashboard.media') || 'Media'}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2 mt-2">
+                      <h3 className="text-sm font-medium text-gray-200 mb-2">{t('dashboard.media')}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.logoUrl') || 'Logo URL'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.logoUrl')}</label>
                           <input
                             type="url"
                             name="logo_url"
                             value={formData.logo_url}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.bannerUrl') || 'Banner URL'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.bannerUrl')}</label>
                           <input
                             type="url"
                             name="banner_url"
                             value={formData.banner_url}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                       </div>
                     </div>
                     
                     {/* Contact Information */}
-                    <div className="md:col-span-2">
-                      <h3 className="text-md font-medium text-gray-200 mb-3">{t('dashboard.contactInformation') || 'Contact Information'}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2 mt-2">
+                      <h3 className="text-sm font-medium text-gray-200 mb-2">{t('dashboard.contactInformation')}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.email') || 'Email'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.contactEmail')}</label>
                           <input
                             type="email"
                             name="contact_email"
                             value={formData.contact_email}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.phone') || 'Phone'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.phone')}</label>
                           <input
                             type="tel"
                             name="contact_phone"
                             value={formData.contact_phone}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                       </div>
                     </div>
                     
                     {/* Address */}
-                    <div className="md:col-span-2">
-                      <h3 className="text-md font-medium text-gray-200 mb-3">{t('dashboard.address') || 'Address'}</h3>
-                      <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div className="md:col-span-2 mt-2">
+                      <h3 className="text-sm font-medium text-gray-200 mb-2">{t('dashboard.shopAddress')}</h3>
+                      <div className="grid grid-cols-1 gap-3 mb-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.streetAddress') || 'Street Address'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.streetAddress')}</label>
                           <input
                             type="text"
                             name="address"
                             value={formData.address}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.city') || 'City'} *</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.city')} *</label>
                           <input
                             type="text"
                             name="city"
                             value={formData.city}
                             onChange={handleInputChange}
                             required
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.state') || 'State/Province'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.state')}</label>
                           <input
                             type="text"
                             name="state"
                             value={formData.state}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.country') || 'Country'} *</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.country')} *</label>
                           <input
                             type="text"
                             name="country"
                             value={formData.country}
                             onChange={handleInputChange}
                             required
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.postalCode') || 'Postal Code'} *</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.postalCode')} *</label>
                           <input
                             type="text"
                             name="postal_code"
                             value={formData.postal_code}
                             onChange={handleInputChange}
                             required
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                       </div>
                     </div>
                     
                     {/* Social Media */}
-                    <div className="md:col-span-2">
-                      <h3 className="text-md font-medium text-gray-200 mb-3">{t('dashboard.socialMedia') || 'Social Media'}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2 mt-2">
+                      <h3 className="text-sm font-medium text-gray-200 mb-2">{t('dashboard.shopSocialMedia')}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-1">Facebook</label>
                           <input
@@ -708,7 +722,7 @@ const ShopDashboard: React.FC = () => {
                             name="social_media.facebook"
                             value={formData.social_media.facebook}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
@@ -718,7 +732,7 @@ const ShopDashboard: React.FC = () => {
                             name="social_media.instagram"
                             value={formData.social_media.instagram}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
@@ -728,17 +742,17 @@ const ShopDashboard: React.FC = () => {
                             name="social_media.twitter"
                             value={formData.social_media.twitter}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.website') || 'Website'}</label>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">{t('dashboard.website')}</label>
                           <input
                             type="url"
                             name="social_media.website"
                             value={formData.social_media.website}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           />
                         </div>
                       </div>
