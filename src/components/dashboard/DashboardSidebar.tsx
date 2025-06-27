@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { LogOut, Package, Gem, Ticket, Store, LucideIcon } from 'lucide-react';
+import { LogOut, Package, Gem, Ticket, Store, LucideIcon, X } from 'lucide-react';
 import chibiImage from '../../assets/chibi.png';
 import chibi2Image from '../../assets/chibi2.png';
+import chibi3Image from '../../assets/chibi3.png';
+import { gsap } from 'gsap';
 
 interface SidebarItem {
   id: string;
@@ -30,6 +32,10 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const navigate = useNavigate();
   const [shopCount, setShopCount] = useState(0);
   const [productCount, setProductCount] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const modalImageRef = useRef<HTMLImageElement>(null);
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
 
   // Fetch shop and product counts from API
   useEffect(() => {
@@ -64,6 +70,46 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     fetchCounts();
   }, [user]);
 
+  // GSAP animation for modal
+  useEffect(() => {
+    if (selectedImage) {
+      // Animate modal overlay
+      gsap.fromTo(
+        modalOverlayRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3 }
+      );
+      
+      // Animate modal
+      gsap.fromTo(
+        modalRef.current,
+        { y: -50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }
+      );
+      
+      // Animate image with blink effect
+      gsap.fromTo(
+        modalImageRef.current,
+        { scale: 0.8, opacity: 0.5 },
+        { 
+          scale: 1, 
+          opacity: 1, 
+          duration: 0.7,
+          ease: "elastic.out(1, 0.3)",
+          onComplete: () => {
+            // Add blink animation
+            gsap.to(modalImageRef.current, {
+              filter: "brightness(1.5)",
+              duration: 0.2,
+              repeat: 2,
+              yoyo: true
+            });
+          }
+        }
+      );
+    }
+  }, [selectedImage]);
+
   const sidebarItems: SidebarItem[] = [
     { id: 'orders', label: t('dashboard.recentOrders') || 'Recent Orders', icon: Package, count: 0, route: '/dashboard' },
     { id: 'products', label: t('nav.products') || 'Products', icon: Gem, count: productCount, route: '/dashboard/product' },
@@ -84,35 +130,98 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       </div>
 
       {/* Chibi decorations in fan shape */}
-      <div className="px-6 py-3 flex justify-center space-x-2">
-        {/* First chibi image */}
-        <div className="relative">
-          <img 
-            src={chibiImage} 
-            alt="Chibi character 1" 
-            className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+      <div className="px-6 py-3 flex justify-center">
+        <div className="relative flex items-center justify-center" style={{ height: '120px', width: '180px' }}>
+          {/* First chibi image */}
+          <div 
+            className="absolute cursor-pointer"
             style={{ 
-              filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
-              animation: 'bounce 3s ease-in-out infinite',
-              transform: 'rotate(-15deg)'
+              transform: 'rotate(-30deg) translateX(-40px)', 
+              zIndex: 1 
             }}
-          />
-        </div>
-        
-        {/* Second chibi image */}
-        <div className="relative">
-          <img 
-            src={chibi2Image} 
-            alt="Chibi character 2" 
-            className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+          >
+            <img 
+              src={chibiImage} 
+              alt="Chibi character 1" 
+              className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+              style={{ 
+                filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+                animation: 'bounce 3s ease-in-out infinite'
+              }}
+              onClick={() => setSelectedImage(chibiImage)}
+            />
+          </div>
+          
+          {/* Second chibi image - center */}
+          <div 
+            className="absolute cursor-pointer"
             style={{ 
-              filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
-              animation: 'bounce 3s ease-in-out infinite 0.5s',
-              transform: 'rotate(15deg)'
+              zIndex: 2 
             }}
-          />
+          >
+            <img 
+              src={chibi2Image} 
+              alt="Chibi character 2" 
+              className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+              style={{ 
+                filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+                animation: 'bounce 3s ease-in-out infinite 0.5s'
+              }}
+              onClick={() => setSelectedImage(chibi2Image)}
+            />
+          </div>
+
+          {/* Third chibi image */}
+          <div 
+            className="absolute cursor-pointer"
+            style={{ 
+              transform: 'rotate(30deg) translateX(40px)', 
+              zIndex: 1 
+            }}
+          >
+            <img 
+              src={chibi3Image} 
+              alt="Chibi character 3" 
+              className="h-16 w-auto object-contain hover:scale-110 transition-transform"
+              style={{ 
+                filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+                animation: 'bounce 3s ease-in-out infinite 0.3s'
+              }}
+              onClick={() => setSelectedImage(chibi3Image)}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Modal for displaying clicked image */}
+      {selectedImage && (
+        <div 
+          ref={modalOverlayRef}
+          className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div 
+            ref={modalRef}
+            className="bg-gray-800 p-4 rounded-lg relative max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="absolute top-2 right-2 text-white hover:text-gray-300"
+              onClick={() => setSelectedImage(null)}
+            >
+              <X size={24} />
+            </button>
+            <div className="flex justify-center">
+              <img 
+                ref={modalImageRef}
+                src={selectedImage} 
+                alt="Enlarged chibi character" 
+                className="max-h-96 object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 p-4">
@@ -136,13 +245,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   <item.icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
                 </div>
-                {item.count !== undefined && item.count !== null && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    item.id === activeTab ? 'bg-yellow-400/20 text-yellow-400' : 'bg-gray-800 text-gray-300'
-                  }`}>
-                    {item.count}
-                  </span>
-                )}
               </button>
             </li>
           ))}
