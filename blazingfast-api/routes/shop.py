@@ -224,13 +224,22 @@ def update_shop(shop_id: uuid.UUID, shop: ShopUpdate, db: Session = Depends(get_
     db.refresh(db_shop)
     return ShopResponse.from_orm(db_shop)
 
-@router.delete("/{shop_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{shop_id}", response_model=dict)
 def delete_shop(shop_id: uuid.UUID, db: Session = Depends(get_db)):
-    """Delete a shop"""
     db_shop = db.query(Shop).filter(Shop.id == shop_id).first()
     if db_shop is None:
         raise HTTPException(status_code=404, detail="Shop not found")
     
     db.delete(db_shop)
     db.commit()
-    return None
+    return {"message": "Shop deleted successfully"}
+
+# Pydantic model for count response
+class CountResponse(BaseModel):
+    count: int
+
+# Get total count of shops owned by a specific user
+@router.get("/count/", response_model=CountResponse)
+def get_shop_count(owner_id: uuid.UUID, db: Session = Depends(get_db)):
+    count = db.query(Shop).filter(Shop.owner_id == owner_id).count()
+    return CountResponse(count=count)

@@ -12,6 +12,7 @@ interface ProductTableProps {
   onDelete: (productId: string) => void;
   selectedProduct: Product | null;
   onSelectProduct: (product: Product) => void;
+  onRefresh?: () => void;
 }
 
 const ProductTable: React.FC<ProductTableProps> = ({
@@ -21,7 +22,8 @@ const ProductTable: React.FC<ProductTableProps> = ({
   onEdit,
   onDelete,
   selectedProduct,
-  onSelectProduct
+  onSelectProduct,
+  onRefresh
 }) => {
   const { t } = useLanguage();
   const [showImageCarousel, setShowImageCarousel] = useState(false);
@@ -160,6 +162,10 @@ const ProductTable: React.FC<ProductTableProps> = ({
         onClose={() => setShowImageCarousel(false)}
         productId={carouselProductId}
         productName={carouselProductName}
+        onImagesUpdated={() => {
+          // Refresh product data if needed
+          if (onRefresh) onRefresh();
+        }}
       />
     </>  
   );

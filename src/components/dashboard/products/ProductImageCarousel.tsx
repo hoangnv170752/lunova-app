@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Trash2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import gsap from 'gsap';
 
@@ -16,19 +16,25 @@ interface ProductImageCarouselProps {
   onClose: () => void;
   productId: string;
   productName: string;
+  onImagesUpdated?: () => void;
 }
 
 const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({
   isOpen,
   onClose,
   productId,
-  productName
+  productName,
+  onImagesUpdated
 }) => {
   const { t } = useLanguage();
   const [images, setImages] = useState<ProductImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -148,6 +154,60 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({
       setCurrentIndex(currentIndex + 1);
     }
   };
+
+  const handleDeleteImage = useCallback(async (imageId: string) => {
+    setDeleteLoading(true);
+    setDeleteError(null);
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/product-images/${imageId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'accept': 'application/json'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete product image');
+      }
+      
+      // Remove the deleted image from the local state
+      setImages(prevImages => prevImages.filter(img => img.id !== imageId));
+      
+      // If we deleted the current image, adjust the current index
+      if (currentIndex >= images.length - 1) {
+        setCurrentIndex(Math.max(0, images.length - 2));
+      }
+      
+      // Notify parent component if needed
+      if (onImagesUpdated) {
+        onImagesUpdated();
+      }
+      
+      setShowDeleteConfirm(false);
+      setImageToDelete(null);
+    } catch (error) {
+      console.error('Error deleting product image:', error);
+      setDeleteError(typeof error === 'string' ? error : (error as Error).message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [currentIndex, images.length, onImagesUpdated]);
+  
+  const openDeleteConfirmation = (e: React.MouseEvent, imageId: string) => {
+    e.stopPropagation();
+    setImageToDelete(imageId);
+    setShowDeleteConfirm(true);
+  };
+  
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setImageToDelete(null);
+    setDeleteError(null);
+  };
   
   if (!isOpen) return null;
   
@@ -206,11 +266,19 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({
                         alt={image.alt_text || 'Product image'} 
                         className="w-full h-full object-contain"
                       />
-                      {image.is_primary && (
-                        <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
-                          {t('dashboard.products.primary') || 'Primary'}
-                        </div>
-                      )}
+                      <div className="absolute top-2 right-2 flex space-x-2">
+                        {image.is_primary && (
+                          <div className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
+                            {t('dashboard.products.primary') || 'Primary'}
+                          </div>
+                        )}
+                        <button 
+                          onClick={(e) => openDeleteConfirmation(e, image.id)}
+                          className="bg-red-500/70 hover:bg-red-600 text-white p-1 rounded-full transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -273,6 +341,55 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-800">
+            <div className="flex items-center mb-4 text-red-500">
+              <AlertCircle className="h-6 w-6 mr-2" />
+              <h3 className="text-lg font-medium">{t('dashboard.products.confirmDelete') || 'Confirm Delete'}</h3>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              {t('dashboard.products.deleteImageConfirmation') || 'Are you sure you want to delete this image? This action cannot be undone.'}
+            </p>
+            
+            {deleteError && (
+              <div className="mb-4 p-3 bg-red-900/50 border border-red-800 rounded text-red-300 text-sm">
+                {deleteError}
+              </div>
+            )}
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelDelete}
+                disabled={deleteLoading}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded transition-colors"
+              >
+                {t('common.cancel') || 'Cancel'}
+              </button>
+              <button
+                onClick={() => imageToDelete && handleDeleteImage(imageToDelete)}
+                disabled={deleteLoading}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors flex items-center"
+              >
+                {deleteLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    {t('common.deleting') || 'Deleting...'}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {t('common.delete') || 'Delete'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
