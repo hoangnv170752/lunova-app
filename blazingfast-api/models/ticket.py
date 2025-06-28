@@ -15,8 +15,9 @@ class Ticket(Base):
     priority = Column(String, nullable=False, default="medium")
     category = Column(String, nullable=False)
     assigned_to = Column(UUID(as_uuid=True), nullable=True)
-    related_order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="SET NULL"), nullable=True)
-    related_product_id = Column(UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
+    # Removed foreign key constraints to non-existent tables
+    related_order_id = Column(UUID(as_uuid=True), nullable=True)
+    related_product_id = Column(UUID(as_uuid=True), nullable=True)
     attachments = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
