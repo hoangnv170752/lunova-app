@@ -50,89 +50,80 @@ interface TicketResponse {
 
 // Smaller components for better maintainability
 const TicketStatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'open':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'in_progress':
-        return <Clock className="h-4 w-4 text-blue-500" />;
-      case 'resolved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'closed':
-        return <CheckCircle className="h-4 w-4 text-gray-500" />;
-      default:
-        return <MessageCircle className="h-4 w-4 text-gray-400" />;
-    }
-  };
+  const { t } = useLanguage();
+  let bgColor = '';
+  let textColor = '';
+  let statusKey = '';
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'resolved':
-        return 'bg-green-100 text-green-800';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const mapStatusToUI = (status: string) => {
-    switch (status) {
-      case 'open':
-        return 'Open';
-      case 'in_progress':
-        return 'In Progress';
-      case 'resolved':
-        return 'Resolved';
-      case 'closed':
-        return 'Closed';
-      default:
-        return status;
-    }
-  };
+  switch (status) {
+    case 'open':
+      bgColor = 'bg-green-500/20';
+      textColor = 'text-green-400';
+      statusKey = 'dashboard.tickets.statusOpen';
+      break;
+    case 'closed':
+      bgColor = 'bg-gray-500/20';
+      textColor = 'text-gray-400';
+      statusKey = 'dashboard.tickets.statusClosed';
+      break;
+    case 'pending':
+      bgColor = 'bg-yellow-500/20';
+      textColor = 'text-yellow-400';
+      statusKey = 'dashboard.tickets.statusPending';
+      break;
+    default:
+      bgColor = 'bg-gray-500/20';
+      textColor = 'text-gray-400';
+      statusKey = '';
+  }
+  
+  const statusText = statusKey ? t(statusKey) || status : status;
 
   return (
-    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full items-center ${getStatusClass(status)}`}>
-      {getStatusIcon(status)}
-      <span className="ml-1">{mapStatusToUI(status)}</span>
+    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${bgColor} ${textColor}`}>
+      {statusText}
     </span>
   );
 };
 
 const PriorityBadge: React.FC<{ priority: string }> = ({ priority }) => {
-  const getPriorityClass = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-blue-100 text-blue-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const { t } = useLanguage();
+  let bgColor = '';
+  let textColor = '';
+  let priorityKey = '';
 
-  const mapPriorityToUI = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'High';
-      case 'medium':
-        return 'Medium';
-      case 'low':
-        return 'Low';
-      default:
-        return priority;
-    }
-  };
+  switch (priority) {
+    case 'low':
+      bgColor = 'bg-blue-500/20';
+      textColor = 'text-blue-400';
+      priorityKey = 'dashboard.tickets.priorityLow';
+      break;
+    case 'medium':
+      bgColor = 'bg-yellow-500/20';
+      textColor = 'text-yellow-400';
+      priorityKey = 'dashboard.tickets.priorityMedium';
+      break;
+    case 'high':
+      bgColor = 'bg-orange-500/20';
+      textColor = 'text-orange-400';
+      priorityKey = 'dashboard.tickets.priorityHigh';
+      break;
+    case 'urgent':
+      bgColor = 'bg-red-500/20';
+      textColor = 'text-red-400';
+      priorityKey = 'dashboard.tickets.priorityUrgent';
+      break;
+    default:
+      bgColor = 'bg-gray-500/20';
+      textColor = 'text-gray-400';
+      priorityKey = '';
+  }
+  
+  const priorityText = priorityKey ? t(priorityKey) || priority : priority;
 
   return (
-    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityClass(priority)}`}>
-      {mapPriorityToUI(priority)}
+    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${bgColor} ${textColor}`}>
+      {priorityText}
     </span>
   );
 };
@@ -200,51 +191,49 @@ const TicketFilters: React.FC<{
   const { t } = useLanguage();
   
   return (
-    <div className="flex space-x-4 mb-4">
+    <div className="flex flex-wrap gap-3">
       <div className="relative">
         <select
-          className="bg-gray-800 text-white border border-gray-700 rounded-md px-3 py-2 pr-8 text-sm appearance-none"
+          className="appearance-none px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-yellow-500 pr-8"
           value={statusFilter}
           onChange={(e) => onStatusFilterChange(e.target.value)}
         >
-          <option value="">{t('dashboard.tickets.all_statuses') || 'All Statuses'}</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
+          <option value="">{t('dashboard.tickets.filterAll') || 'All'} {t('dashboard.tickets.status') || 'Statuses'}</option>
+          <option value="open">{t('dashboard.tickets.statusOpen') || 'Open'}</option>
+          <option value="pending">{t('dashboard.tickets.statusPending') || 'Pending'}</option>
+          <option value="closed">{t('dashboard.tickets.statusClosed') || 'Closed'}</option>
         </select>
-        <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-gray-400" />
+        <ChevronDown className="absolute right-2 top-1.5 h-3 w-3 text-gray-400 pointer-events-none" />
       </div>
       
       <div className="relative">
         <select
-          className="bg-gray-800 text-white border border-gray-700 rounded-md px-3 py-2 pr-8 text-sm appearance-none"
+          className="appearance-none px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-yellow-500 pr-8"
           value={priorityFilter}
           onChange={(e) => onPriorityFilterChange(e.target.value)}
         >
-          <option value="">{t('dashboard.tickets.all_priorities') || 'All Priorities'}</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="">{t('dashboard.tickets.filterAll') || 'All'} {t('dashboard.tickets.priority') || 'Priorities'}</option>
+          <option value="low">{t('dashboard.tickets.priorityLow') || 'Low'}</option>
+          <option value="medium">{t('dashboard.tickets.priorityMedium') || 'Medium'}</option>
+          <option value="high">{t('dashboard.tickets.priorityHigh') || 'High'}</option>
+          <option value="urgent">{t('dashboard.tickets.priorityUrgent') || 'Urgent'}</option>
         </select>
-        <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-gray-400" />
+        <ChevronDown className="absolute right-2 top-1.5 h-3 w-3 text-gray-400 pointer-events-none" />
       </div>
       
       <div className="relative">
         <select
-          className="bg-gray-800 text-white border border-gray-700 rounded-md px-3 py-2 pr-8 text-sm appearance-none"
+          className="appearance-none px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:border-yellow-500 pr-8"
           value={categoryFilter}
           onChange={(e) => onCategoryFilterChange(e.target.value)}
         >
-          <option value="">{t('dashboard.tickets.all_categories') || 'All Categories'}</option>
-          <option value="Account">Account</option>
-          <option value="Order">Order</option>
-          <option value="Payment">Payment</option>
+          <option value="">{t('dashboard.tickets.filterAll') || 'All'} {t('dashboard.tickets.filterByCategory') || 'Categories'}</option>
+          <option value="General">General</option>
+          <option value="Technical">Technical</option>
+          <option value="Billing">Billing</option>
           <option value="Product">Product</option>
-          <option value="Shipping">Shipping</option>
-          <option value="Website">Website</option>
         </select>
-        <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-gray-400" />
+        <ChevronDown className="absolute right-2 top-1.5 h-3 w-3 text-gray-400 pointer-events-none" />
       </div>
     </div>
   );
@@ -259,6 +248,18 @@ const TicketDashboard: React.FC = () => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showTicketDetails, setShowTicketDetails] = useState(false);
   const [ticketResponses, setTicketResponses] = useState<TicketResponse[]>([]);
+  const [newResponse, setNewResponse] = useState('');
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
+  
+  // State for create ticket modal
+  const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
+  const [newTicket, setNewTicket] = useState({
+    subject: '',
+    description: '',
+    category: 'General',
+    priority: 'medium'
+  });
   
   // API integration state
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -287,8 +288,10 @@ const TicketDashboard: React.FC = () => {
       params.append('skip', ((currentPage - 1) * itemsPerPage).toString());
       params.append('limit', itemsPerPage.toString());
       
+      // Always filter by user_id if available
       if (user?.id) {
         params.append('user_id', user.id);
+        console.log('Filtering tickets by user_id:', user.id);
       }
       
       if (statusFilter) {
@@ -310,23 +313,32 @@ const TicketDashboard: React.FC = () => {
       params.append('sort_by', sortBy);
       params.append('sort_order', sortOrder);
       
+      // Make sure we're using the correct endpoint format with trailing slash
+      const endpoint = backendUrl.endsWith('/') ? `${backendUrl}tickets/` : `${backendUrl}/tickets/`;
+      console.log('Fetching tickets from:', `${endpoint}?${params.toString()}`);
+      
       // Make API request
-      const response = await fetch(`${backendUrl}/tickets?${params.toString()}`);
+      const response = await fetch(`${endpoint}?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
       
       const data = await response.json();
-      setTickets(data.items || []);
+      console.log('API response data:', data);
       
-      // Calculate total pages
-      const total = data.total || 0;
-      setTotalPages(Math.ceil(total / itemsPerPage));
+      if (Array.isArray(data)) {
+        setTickets(data);
+        setTotalPages(Math.ceil(data.length / itemsPerPage));
+      } else {
+        setTickets(data.items || []);
+        // Calculate total pages
+        const total = data.total || 0;
+        setTotalPages(Math.ceil(total / itemsPerPage));
+      }
     } catch (err) {
       console.error('Failed to fetch tickets:', err);
       setError('Failed to load tickets. Please try again.');
-      // Use empty array when error occurs
       setTickets([]);
     } finally {
       setLoading(false);
@@ -336,21 +348,39 @@ const TicketDashboard: React.FC = () => {
   // Create a new ticket
   const createTicket = async (ticketData: {
     user_id?: string;
+    assigned_to?: string;
     subject: string;
     description: string;
     category: string;
     priority: string;
+    attachments?: Array<Record<string, unknown>>;
+    related_order_id?: string | null;
+    related_product_id?: string | null;
   }) => {
     try {
-      const response = await fetch(`${backendUrl}/tickets`, {
+      const endpoint = backendUrl.endsWith('/') ? `${backendUrl}tickets/` : `${backendUrl}/tickets/`;
+      
+      const payload = {
+        ...ticketData,
+        attachments: ticketData.attachments || [],
+        related_order_id: ticketData.related_order_id || null,
+        related_product_id: ticketData.related_product_id || null
+      };
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'accept': 'application/json'
         },
-        body: JSON.stringify(ticketData),
+        body: JSON.stringify(payload),
       });
       
+      const responseData = await response.json().catch(() => null);
+      console.log('API response:', responseData);
+      
       if (!response.ok) {
+        console.error('API error response:', responseData);
         throw new Error(`API error: ${response.status}`);
       }
       
@@ -423,22 +453,121 @@ const TicketDashboard: React.FC = () => {
     }
   };
   
-  // Handle ticket selection for viewing details
-  const handleTicketSelect = async (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setShowTicketDetails(true);
-    
-    // Fetch ticket responses
+  // Fetch ticket responses
+  const fetchTicketResponses = async (ticketId: string) => {
     try {
-      const response = await fetch(`${backendUrl}/tickets/${ticket.id}/responses`);
-      if (response.ok) {
-        const data = await response.json();
+      // Use the correct endpoint format for ticket responses
+      const endpoint = backendUrl.endsWith('/') 
+        ? `${backendUrl}ticket-responses/ticket/${ticketId}?limit=100` 
+        : `${backendUrl}/ticket-responses/ticket/${ticketId}?limit=100`;
+      
+      console.log('Fetching ticket responses from:', endpoint);
+      
+      const response = await fetch(endpoint);
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Ticket responses data:', data);
+      
+      // Handle both array response and paginated response
+      if (Array.isArray(data)) {
+        setTicketResponses(data);
+      } else {
         setTicketResponses(data.items || []);
       }
     } catch (err) {
       console.error('Failed to fetch ticket responses:', err);
       setTicketResponses([]);
     }
+  };
+  
+  // Create a new ticket response
+  const createTicketResponse = async (responseData: {
+    ticket_id: string;
+    user_id: string;
+    is_staff: boolean;
+    message: string;
+    attachments?: Array<Record<string, unknown>>;
+  }) => {
+    setIsSubmittingResponse(true);
+    try {
+      // Make sure we're using the correct endpoint format with trailing slash
+      const endpoint = backendUrl.endsWith('/') 
+        ? `${backendUrl}ticket-responses/` 
+        : `${backendUrl}/ticket-responses/`;
+      
+      console.log('Creating ticket response with payload:', responseData);
+      console.log('Endpoint:', endpoint);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        body: JSON.stringify(responseData),
+      });
+      
+      const responseData2 = await response.json().catch(() => null);
+      console.log('API response:', responseData2);
+      
+      if (!response.ok) {
+        console.error('API error response:', responseData2);
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      // Refresh ticket responses after creation
+      await fetchTicketResponses(responseData.ticket_id);
+      return true;
+    } catch (err) {
+      console.error('Failed to create ticket response:', err);
+      return false;
+    } finally {
+      setIsSubmittingResponse(false);
+    }
+  };
+  
+  // Generate AI response suggestion
+  const generateAIResponse = async (prompt: string) => {
+    if (!prompt) return;
+    
+    setIsGeneratingResponse(true);
+    try {
+      const response = await fetch('https://wahkrbn6pj.execute-api.us-east-1.amazonaws.com/default/LunovaChatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('AI response:', data);
+      
+      // Extract the response body from the API response
+      if (data && data.body) {
+        setNewResponse(data.body);
+      }
+    } catch (err) {
+      console.error('Failed to generate AI response:', err);
+    } finally {
+      setIsGeneratingResponse(false);
+    }
+  };
+  
+  // Handle ticket selection
+  const handleTicketSelect = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setShowTicketDetails(true);
+    fetchTicketResponses(ticket.id);
+    setNewResponse(''); // Reset response input
   };
   
   // Handle page change
@@ -480,7 +609,7 @@ const TicketDashboard: React.FC = () => {
         <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">{t('dashboard.tickets.title') || 'Support Tickets'}</h1>
+              <h1 className="text-2xl font-bold">{t('dashboard.tickets.title') || 'Support Tickets'}</h1>
               <p className="text-gray-400 text-sm">{t('dashboard.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -548,17 +677,7 @@ const TicketDashboard: React.FC = () => {
                     </div>
                     <button 
                       className="px-3 py-2 bg-yellow-400 hover:bg-yellow-500 rounded-lg text-sm text-black flex items-center gap-2"
-                      onClick={() => {
-                        // Create ticket functionality
-                        const newTicket = {
-                          user_id: user?.id,
-                          subject: 'New Ticket',
-                          description: 'This is a new ticket',
-                          category: 'General',
-                          priority: 'medium'
-                        };
-                        createTicket(newTicket);
-                      }}
+                      onClick={() => setShowCreateTicketModal(true)}
                     >
                       <Plus className="h-4 w-4" />
                       <span>{t('dashboard.tickets.createTicket') || 'Create Ticket'}</span>
@@ -759,25 +878,227 @@ const TicketDashboard: React.FC = () => {
             
             <h3 className="font-semibold mb-2">{t('dashboard.tickets.responses') || 'Responses'}</h3>
             
-            {ticketResponses.length > 0 ? (
-              <div className="space-y-4">
-                {ticketResponses.map((response) => (
-                  <div key={response.id} className="bg-gray-800 p-3 rounded">
-                    <div className="flex justify-between mb-1">
-                      <span className="font-medium">
-                        {response.is_staff ? 'Staff' : 'User'}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(response.created_at).toLocaleString()}
-                      </span>
+            {/* Ticket responses */}
+            <div className="mb-4 max-h-60 overflow-y-auto">
+              {ticketResponses.length > 0 ? (
+                <div className="space-y-4">
+                  {ticketResponses.map((response) => (
+                    <div key={response.id} className="bg-gray-800 p-3 rounded">
+                      <div className="flex justify-between mb-1">
+                        <span className={`font-medium ${response.is_staff ? 'text-yellow-400' : 'text-blue-400'}`}>
+                          {response.is_staff ? (t('dashboard.tickets.staff') || 'Staff') : (t('dashboard.tickets.user') || 'User')}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(response.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-sm">{response.message}</p>
                     </div>
-                    <p className="text-sm">{response.message}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 italic">{t('dashboard.tickets.noResponses') || 'No responses yet'}</p>
+              )}
+            </div>
+            
+            {/* Add new response */}
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold">{t('dashboard.tickets.addResponse') || 'Add Response'}</h3>
+                {selectedTicket && (
+                  <button
+                    className={`flex items-center px-3 py-1 rounded text-xs ${isGeneratingResponse ? 'bg-gray-700 text-gray-400' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                    disabled={isGeneratingResponse}
+                    onClick={() => generateAIResponse(selectedTicket.description)}
+                    title={t('dashboard.tickets.aiSuggestion') || 'Get AI suggestion'}
+                  >
+                    {isGeneratingResponse ? (
+                      <>
+                        <span className="inline-block animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-gray-400 mr-1"></span>
+                        {t('dashboard.tickets.generating') || 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                        </svg>
+                        {t('dashboard.tickets.aiSuggestion') || 'AI Suggestion'}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
-            ) : (
-              <p className="text-gray-400 italic">{t('dashboard.tickets.noResponses') || 'No responses yet'}</p>
-            )}
+              <div className="flex flex-col space-y-3">
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-white w-full">
+                  <textarea
+                    className="bg-transparent w-full resize-none outline-none"
+                    rows={5}
+                    placeholder={t('dashboard.tickets.typeResponse') || 'Type your response...'}
+                    value={newResponse}
+                    onChange={(e) => setNewResponse(e.target.value)}
+                  />
+                  {/* Rich text preview */}
+                  {newResponse && (
+                    <div className="mt-3 pt-3 border-t border-gray-700">
+                      <div className="text-sm text-gray-300">
+                        <div dangerouslySetInnerHTML={{ __html: newResponse.replace(/\n/g, '<br/>') }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    className={`px-4 py-2 rounded-lg text-sm ${isSubmittingResponse ? 'bg-gray-700 text-gray-400' : 'bg-yellow-400 hover:bg-yellow-500 text-black'}`}
+                    disabled={isSubmittingResponse || newResponse.trim() === ''}
+                    onClick={() => {
+                      if (selectedTicket && user && newResponse.trim() !== '') {
+                        createTicketResponse({
+                          ticket_id: selectedTicket.id,
+                          user_id: user.id,
+                          is_staff: true, // Staff responses on web interface
+                          message: newResponse,
+                          attachments: []
+                        }).then(success => {
+                          if (success) {
+                            setNewResponse('');
+                          }
+                        });
+                      }
+                    }}
+                  >
+                    {isSubmittingResponse ? (
+                      <>
+                        <span className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-gray-400 mr-2"></span>
+                        {t('dashboard.tickets.submitting') || 'Submitting...'}
+                      </>
+                    ) : (
+                      t('dashboard.tickets.submit') || 'Submit'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showCreateTicketModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">{t('dashboard.tickets.createTicket') || 'Create Ticket'}</h2>
+              <button 
+                onClick={() => setShowCreateTicketModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (newTicket.subject.trim() === '' || newTicket.description.trim() === '') {
+                return;
+              }
+              
+              const ticketData = {
+                ...newTicket,
+                user_id: user?.id,
+                assigned_to: user?.id, // Set assigned_to to the same user who created the ticket
+                attachments: [],
+                related_order_id: null,
+                related_product_id: null
+              };
+              
+              createTicket(ticketData).then((success) => {
+                if (success) {
+                  setShowCreateTicketModal(false);
+                  setNewTicket({
+                    subject: '',
+                    description: '',
+                    category: 'General',
+                    priority: 'medium'
+                  });
+                }
+              });
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    {t('dashboard.tickets.subject') || 'Subject'}
+                  </label>
+                  <input
+                    type="text"
+                    value={newTicket.subject}
+                    onChange={(e) => setNewTicket({...newTicket, subject: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-yellow-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    {t('dashboard.tickets.description') || 'Description'}
+                  </label>
+                  <textarea
+                    value={newTicket.description}
+                    onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-yellow-500 min-h-[100px]"
+                    required
+                  ></textarea>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      {t('dashboard.tickets.category') || 'Category'}
+                    </label>
+                    <select
+                      value={newTicket.category}
+                      onChange={(e) => setNewTicket({...newTicket, category: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-yellow-500"
+                    >
+                      <option value="General">General</option>
+                      <option value="Technical">Technical</option>
+                      <option value="Billing">Billing</option>
+                      <option value="Product">Product</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                      {t('dashboard.tickets.priority') || 'Priority'}
+                    </label>
+                    <select
+                      value={newTicket.priority}
+                      onChange={(e) => setNewTicket({...newTicket, priority: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-yellow-500"
+                    >
+                      <option value="low">{t('dashboard.tickets.priorityLow') || 'Low'}</option>
+                      <option value="medium">{t('dashboard.tickets.priorityMedium') || 'Medium'}</option>
+                      <option value="high">{t('dashboard.tickets.priorityHigh') || 'High'}</option>
+                      <option value="urgent">{t('dashboard.tickets.priorityUrgent') || 'Urgent'}</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateTicketModal(false)}
+                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm"
+                  >
+                    {t('dashboard.cancel') || 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-black rounded-lg text-sm"
+                  >
+                    {t('dashboard.submit') || 'Submit'}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
