@@ -12,7 +12,7 @@ import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import Dashboard from './components/Dashboard';
-import ProductDashboard from './components/dashboard/ProductDashboard';
+import ProductDashboard from './components/dashboard/ProductDashboardRefactored';
 import TicketDashboard from './components/dashboard/TicketDashboard';
 import ShopDashboard from './components/dashboard/ShopDashboard';
 import Login from './components/Login';

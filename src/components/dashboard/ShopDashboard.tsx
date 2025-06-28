@@ -463,8 +463,8 @@ const ShopDashboard: React.FC = () => {
 
           {/* Create/Edit Shop Modal */}
           {(showCreateModal || editingShop) && (
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-gray-900/90 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-900/90 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Modal Header - macOS style */}
                 <div className="bg-gray-800/80 px-6 py-4 border-b border-gray-700 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -489,7 +489,7 @@ const ShopDashboard: React.FC = () => {
                 </div>
                 
                 {/* Modal Body */}
-                <form onSubmit={handleSubmit} className="p-4">
+                <form onSubmit={handleSubmit} className="p-4 overflow-y-auto custom-scrollbar">
                   {error && (
                     <div className="mb-3 p-2 bg-red-900/30 border border-red-800 rounded-lg text-red-400 text-sm">
                       {error}
