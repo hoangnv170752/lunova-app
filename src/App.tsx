@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -18,6 +18,7 @@ import ShopDashboard from './components/dashboard/ShopDashboard';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
+import MobileWarning from './components/MobileWarning';
 
 const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -55,6 +56,20 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileView(window.innerWidth < 768);
+      console.log('Screen width:', window.innerWidth, 'Is mobile:', window.innerWidth < 768);
+    };
+
+    checkMobile();
+
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <Router>
@@ -68,6 +83,8 @@ const AppContent: React.FC = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
               </div>
             ) : user ? (
+              isMobileView ? 
+              <Navigate to="/mobile-warning" replace /> : 
               <Navigate to="/dashboard/product" replace />
             ) : (
               <Navigate to="/landing" replace />
@@ -78,7 +95,7 @@ const AppContent: React.FC = () => {
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <Dashboard />
+              {isMobileView ? <Navigate to="/mobile-warning" replace /> : <Dashboard />}
             </ProtectedRoute>
           } 
         />
@@ -86,7 +103,7 @@ const AppContent: React.FC = () => {
           path="/dashboard/product" 
           element={
             <ProtectedRoute>
-              <ProductDashboard />
+              {isMobileView ? <Navigate to="/mobile-warning" replace /> : <ProductDashboard />}
             </ProtectedRoute>
           } 
         />
@@ -94,7 +111,7 @@ const AppContent: React.FC = () => {
           path="/dashboard/ticket" 
           element={
             <ProtectedRoute>
-              <TicketDashboard />
+              {isMobileView ? <Navigate to="/mobile-warning" replace /> : <TicketDashboard />}
             </ProtectedRoute>
           } 
         />
@@ -102,7 +119,7 @@ const AppContent: React.FC = () => {
           path="/dashboard/shop" 
           element={
             <ProtectedRoute>
-              <ShopDashboard />
+              {isMobileView ? <Navigate to="/mobile-warning" replace /> : <ShopDashboard />}
             </ProtectedRoute>
           } 
         />
@@ -113,7 +130,7 @@ const AppContent: React.FC = () => {
               <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
               </div>
-            ) : user ? <Navigate to="/dashboard/product" replace /> : <Login />
+            ) : user ? (isMobileView ? <Navigate to="/mobile-warning" replace /> : <Navigate to="/dashboard/product" replace />) : <Login />
           } 
         />
         <Route 
@@ -123,7 +140,7 @@ const AppContent: React.FC = () => {
               <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
               </div>
-            ) : user ? <Navigate to="/dashboard/product" replace /> : <Register />
+            ) : user ? (isMobileView ? <Navigate to="/mobile-warning" replace /> : <Navigate to="/dashboard/product" replace />) : <Register />
           } 
         />
         <Route 
@@ -133,7 +150,15 @@ const AppContent: React.FC = () => {
               <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
               </div>
-            ) : user ? <Navigate to="/dashboard/product" replace /> : <ForgotPassword />
+            ) : user ? (isMobileView ? <Navigate to="/mobile-warning" replace /> : <Navigate to="/dashboard/product" replace />) : <ForgotPassword />
+          } 
+        />
+        <Route 
+          path="/mobile-warning" 
+          element={
+            <ProtectedRoute>
+              <MobileWarning />
+            </ProtectedRoute>
           } 
         />
         <Route path="*" element={<Navigate to="/" replace />} />

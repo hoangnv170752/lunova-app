@@ -28,6 +28,7 @@ const translations = {
     'nav.analytics': 'Analytics',
     'nav.blogs': 'Blogs',
     'nav.tickets': 'Tickets',
+    'auth.logout': 'Logout',
     
     // Hero
     'hero.badge': 'Premium Jewelry & Souvenirs',
@@ -319,6 +320,13 @@ const translations = {
     'dashboard.marketInsights.categories.jewelry': 'Jewelry',
     'dashboard.marketInsights.categories.gasoline': 'Gasoline',
     'dashboard.marketInsights.categories.electronics': 'Electronics',
+    
+    // Mobile Warning
+    'mobile.notSupported': 'Mobile Not Supported',
+    'mobile.notSupportedMessage': 'Lunova dashboard is not optimized for mobile devices. Please use a desktop or tablet in landscape mode.',
+    'desktop.smallScreen': 'Small Screen Detected',
+    'desktop.smallScreenMessage': 'Your screen size is too small for optimal experience. Please resize your browser window or use a larger display.',
+    'mobile.recommendedSize': 'Recommended minimum screen width: 768px',
     'dashboard.marketInsights.categories.fashion': 'Fashion',
     'dashboard.marketInsights.categories.homeDecor': 'Home Decor',
     'common.loading': 'Loading...',
@@ -496,6 +504,7 @@ const translations = {
     
     // Authentication
     'auth.login': 'サインイン',
+    'auth.logout': 'サインアウト',
     'auth.loginDescription': 'Lunovaアカウントにサインイン',
     'auth.email': 'メールアドレス',
     'auth.password': 'パスワード',
@@ -738,6 +747,13 @@ const translations = {
     'dashboard.marketInsights.error': '市場洞察の読み込みに失敗しました。後でもう一度お試しください。',
     'dashboard.marketInsights.noInsights': '洞察が利用できません。カテゴリを選択してください。',
     'dashboard.marketInsights.categories.jewelry': 'ジュエリー',
+    
+    // Mobile Warning
+    'mobile.notSupported': 'モバイル非対応',
+    'mobile.notSupportedMessage': 'Lunovaダッシュボードはモバイルデバイス向けに最適化されていません。デスクトップまたはタブレットの横向きモードをご使用ください。',
+    'desktop.smallScreen': '小さい画面が検出されました',
+    'desktop.smallScreenMessage': '画面サイズが最適な体験には小さすぎます。ブラウザウィンドウのサイズを変更するか、より大きなディスプレイをご使用ください。',
+    'mobile.recommendedSize': '推奨最小画面幅：768px',
     'dashboard.marketInsights.categories.gasoline': 'ガソリン',
     'dashboard.marketInsights.categories.electronics': '電子機器',
     'dashboard.marketInsights.categories.fashion': 'ファッション',
