@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Loader, Eye, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Product } from '../../../types/Product';
+import ProductImageCarousel from './ProductImageCarousel';
 
 interface ProductTableProps {
   loading: boolean;
@@ -23,10 +24,21 @@ const ProductTable: React.FC<ProductTableProps> = ({
   onSelectProduct
 }) => {
   const { t } = useLanguage();
+  const [showImageCarousel, setShowImageCarousel] = useState(false);
+  const [carouselProductId, setCarouselProductId] = useState<string>('');
+  const [carouselProductName, setCarouselProductName] = useState<string>('');
+  
+  const handleViewImages = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation(); // Prevent row selection
+    setCarouselProductId(product.id);
+    setCarouselProductName(product.name);
+    setShowImageCarousel(true);
+  };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full">
         <thead className="bg-gray-800/50 border-y border-gray-800">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -112,8 +124,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
-                    <button className="p-1 rounded-md hover:bg-gray-700">
-                      <Eye className="h-4 w-4 text-gray-400" />
+                    <button 
+                      onClick={(e) => handleViewImages(e, product)}
+                      className="p-1 rounded-md hover:bg-gray-700 hover:text-yellow-500 transition-colors"
+                    >
+                      <Eye className="h-4 w-4 text-gray-400 hover:text-yellow-400" />
                     </button>
                     <button 
                       onClick={() => onEdit(product)}
@@ -136,8 +151,17 @@ const ProductTable: React.FC<ProductTableProps> = ({
             ))
           )}
         </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
+      
+      {/* Product Image Carousel Modal */}
+      <ProductImageCarousel 
+        isOpen={showImageCarousel}
+        onClose={() => setShowImageCarousel(false)}
+        productId={carouselProductId}
+        productName={carouselProductName}
+      />
+    </>  
   );
 };
 

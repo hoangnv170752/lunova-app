@@ -9,7 +9,7 @@ import ProductTable from './products/ProductTable';
 import ProductPagination from './products/ProductPagination';
 import ProductFormModal from './products/ProductFormModal';
 import { Product, ProductFormData } from '../../types/Product';
-import { Upload, X, Image as ImageIcon, Sparkles, Loader } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Sparkles, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ProductDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -39,6 +39,9 @@ const ProductDashboard: React.FC = () => {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [aiEnhancedImages, setAiEnhancedImages] = useState<{original: File, enhanced: string}[]>([]);
+  const [verifyingImage, setVerifyingImage] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedUrls, setUploadedUrls] = useState<{file: File, url: string}[]>([]);
 
   // State for product form data
   const [formData, setFormData] = useState<ProductFormData>({
@@ -200,6 +203,9 @@ const ProductDashboard: React.FC = () => {
     setUploadedImages([]); 
     setIsDragging(false);
     setImageUploadError(null);
+    setVerifyingImage(null);
+    setUploadedUrls([]);
+    setAiEnhancedImages([]);
   };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -256,17 +262,137 @@ const ProductDashboard: React.FC = () => {
     setSelectedProduct(product);
   };
 
-  const handleUploadImages = () => {
-    // Here you would implement the actual image upload logic
-    // For now, we'll just close the modal as if it succeeded
-    if (uploadedImages.length === 0) {
+  const handleUploadImages = async () => {
+    // Clear any previous errors
+    setImageUploadError(null);
+    
+    if (uploadedImages.length === 0 && uploadedUrls.length === 0) {
       setImageUploadError(t('dashboard.products.noImagesSelected') || 'Please select at least one image');
       return;
     }
     
-    // Mock upload success for now
-    closeImageUploadModal();
-    // You would typically send the images to your backend here
+    // If we have already uploaded images, save them to the product
+    if (uploadedUrls.length > 0 && selectedProduct) {
+      try {
+        setIsUploading(true); // Show loading state
+        
+        // For each uploaded URL, create a product image record
+        for (const item of uploadedUrls) {
+          const productImageData = {
+            product_id: selectedProduct.id,
+            image_url: item.url,
+            alt_text: item.file.name || 'Product image',
+            is_primary: uploadedUrls.indexOf(item) === 0, // First image is primary
+            display_order: uploadedUrls.indexOf(item)
+          };
+          
+          console.log('Saving product image:', productImageData);
+          
+          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/product-images/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productImageData),
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = 'Failed to save product image';
+            try {
+              const errorData = JSON.parse(errorText);
+              errorMessage = errorData.detail || errorMessage;
+            } catch {
+              // If parsing fails, use the raw error text
+              errorMessage = errorText || errorMessage;
+            }
+            throw new Error(errorMessage);
+          }
+        }
+        
+        // Success - close modal and reset state
+        closeImageUploadModal();
+        // Refresh products to show new images
+        fetchProducts(selectedShopId);
+      } catch (error) {
+        console.error('Error saving product images:', error);
+        setImageUploadError(typeof error === 'string' ? error : (error as Error).message);
+      } finally {
+        setIsUploading(false);
+      }
+    } else if (uploadedImages.length > 0) {
+      // Start verification process with the first image
+      setVerifyingImage(uploadedImages[0]);
+    } else {
+      setImageUploadError(t('dashboard.products.noImagesSelected') || 'Please select at least one image');
+    }
+  };
+  
+  const handleVerifyUpload = async () => {
+    if (!verifyingImage || !selectedProduct) return;
+    
+    setIsUploading(true);
+    setImageUploadError(null);
+    
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', verifyingImage);
+      formData.append('folder', 'products');
+      
+      console.log('Uploading file:', verifyingImage.name, 'size:', verifyingImage.size);
+      
+      // Upload the file to storage
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/storage/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = 'Failed to upload image';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          // If parsing fails, use the raw error text
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      console.log('Upload successful:', data);
+      
+      // Add the uploaded URL to our list
+      setUploadedUrls(prev => [...prev, { file: verifyingImage, url: data.url }]);
+      
+      // Remove the verified image from uploadedImages
+      setUploadedImages(prev => prev.filter(img => img !== verifyingImage));
+      
+      // Move to next image or finish
+      if (uploadedImages.length > 1) {
+        // Get the next image (after removing the current one)
+        const remainingImages = uploadedImages.filter(img => img !== verifyingImage);
+        if (remainingImages.length > 0) {
+          setVerifyingImage(remainingImages[0]);
+        } else {
+          setVerifyingImage(null);
+        }
+      } else {
+        // All images verified
+        setVerifyingImage(null);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setImageUploadError(typeof error === 'string' ? error : (error as Error).message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  const cancelVerification = () => {
+    setVerifyingImage(null);
   };
   
   const handleAiEnhance = () => {
@@ -436,6 +562,93 @@ const ProductDashboard: React.FC = () => {
             
             {/* Modal Body */}
             <div className="p-4 overflow-y-auto custom-scrollbar">
+              {/* Verification Dialog */}
+              {verifyingImage && (
+                <div className="mb-6 p-4 bg-blue-900/20 border border-blue-800/50 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-300 mb-3 flex items-center gap-2">
+                    <CheckCircle size={16} />
+                    {t('dashboard.products.verifyUpload') || 'Verify Upload'}
+                  </h4>
+                  <p className="text-xs text-blue-200/70 mb-4">
+                    {t('dashboard.products.verifyDescription') || 'Confirm to upload this image to the system'}
+                  </p>
+                  
+                  <div className="flex gap-4 items-center mb-4">
+                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-800 border border-gray-700">
+                      <img 
+                        src={URL.createObjectURL(verifyingImage)} 
+                        alt={verifyingImage.name} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-300 mb-1">{verifyingImage.name}</p>
+                      <p className="text-xs text-gray-400">{(verifyingImage.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={cancelVerification}
+                      disabled={isUploading}
+                      className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded transition-colors"
+                    >
+                      {t('common.cancel') || 'Cancel'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleVerifyUpload}
+                      disabled={isUploading}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded flex items-center gap-1.5 transition-colors"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader size={14} className="animate-spin" />
+                          {t('dashboard.products.uploading') || 'Uploading...'}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={14} />
+                          {t('dashboard.products.verify') || 'Verify'}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Uploaded URLs */}
+              {uploadedUrls.length > 0 && !verifyingImage && (
+                <div className="mb-6 p-4 bg-green-900/20 border border-green-800/50 rounded-lg">
+                  <h4 className="text-sm font-medium text-green-300 mb-3 flex items-center gap-2">
+                    <CheckCircle size={16} />
+                    {t('dashboard.products.uploadSuccess') || 'Images uploaded successfully'} ({uploadedUrls.length})
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+                    {uploadedUrls.map((item, index) => (
+                      <div key={`uploaded-${index}`} className="relative">
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-800 border border-green-700/30">
+                          <img 
+                            src={item.url} 
+                            alt={item.file.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <div className="absolute top-1 right-1 bg-green-500/80 rounded-full p-1">
+                          <CheckCircle size={12} className="text-white" />
+                        </div>
+                        <p className="text-xs text-gray-400 truncate mt-1">{item.file.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <p className="text-xs text-green-200/70">
+                    {t('dashboard.products.uploadSuccess') || 'Click Upload to save these images to the product'}
+                  </p>
+                </div>
+              )}
               {/* Drag and drop area */}
               <div 
                 className={`border-2 border-dashed rounded-lg p-8 mb-4 flex flex-col items-center justify-center cursor-pointer transition-colors ${isDragging ? 'border-yellow-500 bg-yellow-500/10' : 'border-gray-700 hover:border-gray-500'}`}
@@ -561,7 +774,8 @@ const ProductDashboard: React.FC = () => {
             
             {/* Error message */}
             {imageUploadError && (
-              <div className="px-4 py-3 bg-red-900/30 border border-red-800 rounded-lg mb-4">
+              <div className="px-4 py-3 bg-red-900/30 border border-red-800 rounded-lg mb-4 flex items-start gap-2">
+                <AlertCircle size={16} className="text-red-300 mt-0.5 flex-shrink-0" />
                 <p className="text-red-200 text-sm">{imageUploadError}</p>
               </div>
             )}
@@ -572,10 +786,22 @@ const ProductDashboard: React.FC = () => {
               <button 
                 type="button"
                 onClick={handleUploadImages}
-                disabled={uploadedImages.length === 0}
-                className={`px-4 py-2 rounded-lg transition-colors ${uploadedImages.length === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-black font-medium'}`}
+                disabled={(uploadedImages.length === 0 && uploadedUrls.length === 0) || isUploading}
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${(uploadedImages.length === 0 && uploadedUrls.length === 0) || isUploading ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-black font-medium'}`}
               >
-                {t('dashboard.products.upload') || 'Upload'}
+                {isUploading ? (
+                  <>
+                    <Loader size={16} className="animate-spin" />
+                    {t('dashboard.products.uploading') || 'Uploading...'}
+                  </>
+                ) : (
+                  <>
+                    {uploadedUrls.length > 0 ? <CheckCircle size={16} /> : <Upload size={16} />}
+                    {uploadedUrls.length > 0 
+                      ? `${t('dashboard.products.upload') || 'Upload'} (${uploadedUrls.length})`
+                      : t('dashboard.products.upload') || 'Upload'}
+                  </>
+                )}
               </button>
             </div>
           </div>

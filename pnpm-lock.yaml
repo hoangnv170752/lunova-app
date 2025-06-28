@@ -26,6 +26,9 @@ importers:
       react-router-dom:
         specifier: ^6.20.1
         version: 6.30.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      swiper:
+        specifier: ^11.2.9
+        version: 11.2.9
     devDependencies:
       '@eslint/js':
         specifier: ^9.9.1
@@ -1314,6 +1317,10 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  swiper@11.2.9:
+    resolution: {integrity: sha512-X4lP396wfb85t5GclSlXmZyeDgcV66JK9+HDfqlk+8wJ5Bp85ZMv2fxu9psulsm22dLQxbnN4kADxK8jXTnSuw==}
+    engines: {node: '>= 4.7.0'}
 
   tailwindcss@3.4.17:
     resolution: {integrity: sha512-w33E2aCvSDP0tW9RZuNXadXlkHXqFzSkQew/aIa2i/Sj8fThxwovwlXHSPXTbAHwEIhBFXAedUhP2tueAKP8Og==}
@@ -2650,6 +2657,8 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  swiper@11.2.9: {}
 
   tailwindcss@3.4.17:
     dependencies:

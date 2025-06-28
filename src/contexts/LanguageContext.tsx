@@ -270,10 +270,24 @@ const translations = {
     'dashboard.products.selectProduct': 'Select a product to upload images',
     'dashboard.products.upload': 'Upload',
     'dashboard.products.aiEnhance': 'AI Enhance Images',
-    'dashboard.products.aiEnhanceDescription': 'Use AI to enhance your product images',
+    'dashboard.products.aiEnhanceDescription': 'Enhance your product images with AI to improve quality and appearance.',
     'dashboard.products.aiEnhanceMinimum': 'Select at least 2 images for AI enhancement',
     'dashboard.products.aiProcessing': 'AI is processing your images...',
     'dashboard.products.noImagesSelected': 'Please select at least one image',
+    'dashboard.products.verify': 'Verify',
+    'dashboard.products.verifyUpload': 'Verify Upload',
+    'dashboard.products.verifyDescription': 'Confirm to upload this image to the system',
+    'dashboard.products.uploading': 'Uploading...',
+    'dashboard.products.uploadSuccess': 'Images uploaded successfully',
+    'dashboard.products.uploadError': 'Error uploading image',
+    'dashboard.products.clickToUpload': 'Click Upload to save these images to the product',
+    'dashboard.products.aiEnhanced': 'AI Enhanced',
+    'dashboard.products.original': 'Original',
+    'dashboard.products.enhanced': 'Enhanced',
+    'dashboard.products.minImagesForAi': 'Please upload at least 2 images to use AI enhancement.',
+    'dashboard.products.noImages': 'No images available for this product',
+    'dashboard.products.noImagesFound': 'No images found matching your search.',
+    'dashboard.products.primary': 'Primary',
     'dashboard.errorFetchingProducts': 'Error fetching products. Please try again later.',
     'dashboard.errorSavingProduct': 'Error saving product. Please try again later.',
     'dashboard.errorDeletingProduct': 'Error deleting product. Please try again later.',
@@ -285,6 +299,7 @@ const translations = {
     'dashboard.shopUpdated': 'Shop Update',
     'dashboard.shopActions': 'Shop Actions',
     'dashboard.update': 'Update',
+    'common.cancel': 'Cancel',
     
     // Market Insights
     'dashboard.marketInsights': 'Market Insights',
@@ -398,7 +413,9 @@ const translations = {
     'pricing.getStarted': 'Get Started',
     'pricing.bulkQuote': 'Need a custom quote for bulk orders?',
     'pricing.contactSales': 'Contact Our Sales Team',
-    
+    'common.close': 'Close',
+    'dashboard.products.images': 'Images',
+
     // Testimonials
     'testimonials.title': 'What Our Clients Say',
     'testimonials.description': 'Don\'t just take our word for it. Here\'s what our satisfied customers have to say about their Lunova experience.',
@@ -438,7 +455,7 @@ const translations = {
     'footer.contactInfo': 'Contact Info',
     'footer.newsletter': 'Newsletter',
     'footer.newsletterPlaceholder': 'Your email',
-    'footer.copyright': '© 2025 Lunova Co. All rights reserved.',
+    'footer.copyright': ' 2025 Lunova Co. All rights reserved.',
     'footer.privacy': 'Privacy Policy',
     'footer.terms': 'Terms of Service',
     'footer.shipping': 'Shipping & Returns'
@@ -513,6 +530,7 @@ const translations = {
     
     // Dashboard
     'dashboard.create': '成功する',
+    'dashboard.products.images': '画像',
     'dashboard.dashboard': 'ダッシュボード',
     'dashboard.welcome': 'おかえりなさい',
     'dashboard.subtitle': 'ジュエリーコレクションと注文を管理',
@@ -520,7 +538,7 @@ const translations = {
     'dashboard.stats.orders': '総注文数',
     'dashboard.stats.favorites': 'お気に入り',
     'dashboard.stats.cart': 'カート商品',
-    'dashboard.recentOrders': 'ダッシュボード',
+    'dashboard.recentOrders': '最近の注文',
     'dashboard.orderDate': '注文日',
     'dashboard.newOrder': '新規注文',
     'dashboard.favorites': 'お気に入り',
@@ -598,6 +616,12 @@ const translations = {
     'dashboard.products.aiEnhanceMinimum': 'AI強化には少なくとも2つの画像を選択してください',
     'dashboard.products.aiProcessing': 'AIが画像を処理しています...',
     'dashboard.products.noImagesSelected': '少なくとも1つの画像を選択してください',
+    'dashboard.products.verify': '確認',
+    'dashboard.products.verifyUpload': 'アップロード確認',
+    'dashboard.products.verifyDescription': 'この画像をシステムにアップロードすることを確認する',
+    'dashboard.products.uploading': 'アップロード中...',
+    'dashboard.products.uploadSuccess': '画像が正常にアップロードされました',
+    'dashboard.products.uploadError': '画像のアップロード中にエラーが発生しました',
     'dashboard.errorFetchingProducts': '製品の取得中にエラーが発生しました。後でもう一度お試しください。',
     'dashboard.errorSavingProduct': '製品の保存中にエラーが発生しました。後でもう一度お試しください。',
     'dashboard.errorDeletingProduct': '製品の削除中にエラーが発生しました。後でもう一度お試しください。',
@@ -669,7 +693,8 @@ const translations = {
     'dashboard.shopLocation': '場所',
     'dashboard.shopCreated': '作成日',
     'dashboard.shopUpdated': '更新日',
-    
+    'common.cancel': 'キャンセル',
+
     // Shop Management
     'nav.shops': 'ショップ',
     'dashboard.shops': 'ショップ管理',
@@ -692,6 +717,10 @@ const translations = {
     'dashboard.shopDeleted': 'ショップが正常に削除されました',
     'dashboard.shopDeleteError': 'ショップの削除中にエラーが発生しました',
     'dashboard.verificationStatus': '認証状況',
+    'dashboard.products.noImages': '0️⃣',
+    'dashboard.products.noImagesFound': '0️⃣',
+    'dashboard.products.primary': 'プライメリー',
+    'common.close': '閉じる',
     
     // Market Insights
     'dashboard.marketInsights': '市場洞察',
