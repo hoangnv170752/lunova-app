@@ -8,7 +8,7 @@ import os
 import httpx
 from urllib.parse import urljoin
 
-from models import get_db, ProductImage
+from models import get_db, ProductImage, Product
 
 router = APIRouter(
     prefix="/product-images",
@@ -56,6 +56,14 @@ async def create_product_image(
     product_image: ProductImageCreate, 
     db: Session = Depends(get_db)
 ):
+    # First, verify that the product exists
+    product = db.query(Product).filter(Product.id == product_image.product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Product with id {product_image.product_id} not found. Cannot create image for non-existent product."
+        )
+    
     # Create database entry
     db_product_image = ProductImage(
         product_id=product_image.product_id,
