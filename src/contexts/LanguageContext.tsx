@@ -269,6 +269,7 @@ const translations = {
     'dashboard.shopCreated': 'Shop Creation',
     'dashboard.shopUpdated': 'Shop Update',
     'dashboard.shopActions': 'Shop Actions',
+    'dashboard.update': 'Update',
     
     // Market Insights
     'dashboard.marketInsights': 'Market Insights',
@@ -512,6 +513,7 @@ const translations = {
     'dashboard.settings': '設定',
     'dashboard.userManagement': 'ユーザー管理',
     'dashboard.users': 'ユーザー',
+    'dashboard.update': '更新',
     'dashboard.searchUsers': 'ユーザーを検索...',
     'dashboard.sortingBy': '並び替え',
     'dashboard.filters': 'フィルター',
