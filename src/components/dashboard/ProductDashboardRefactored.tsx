@@ -859,6 +859,7 @@ const ProductDashboard: React.FC = () => {
               onDelete={handleDeleteProduct}
               selectedProduct={selectedProduct}
               onSelectProduct={handleSelectProduct}
+              onRefresh={() => fetchProducts(selectedShopId)}
             />
 
             {/* Pagination */}

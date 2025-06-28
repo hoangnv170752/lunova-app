@@ -140,13 +140,22 @@ def update_ticket(ticket_id: uuid.UUID, ticket: TicketUpdate, db: Session = Depe
     db.refresh(db_ticket)
     return db_ticket
 
-@router.delete("/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{ticket_id}", response_model=dict)
 def delete_ticket(ticket_id: uuid.UUID, db: Session = Depends(get_db)):
-    """Delete a ticket"""
     db_ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if db_ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
     
     db.delete(db_ticket)
     db.commit()
-    return None
+    return {"message": "Ticket deleted successfully"}
+
+# Pydantic model for count response
+class CountResponse(BaseModel):
+    count: int
+
+# Get total count of tickets created by a specific user
+@router.get("/count/", response_model=CountResponse)
+def get_ticket_count(user_id: uuid.UUID, db: Session = Depends(get_db)):
+    count = db.query(Ticket).filter(Ticket.user_id == user_id).count()
+    return CountResponse(count=count)

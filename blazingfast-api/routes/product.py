@@ -134,3 +134,20 @@ def get_products_by_category(category: str, db: Session = Depends(get_db)):
 def get_products_by_shop(shop_id: UUID, db: Session = Depends(get_db)):
     products = db.query(Product).filter(Product.shop_id == shop_id).all()
     return products
+
+
+# Pydantic model for count response
+class CountResponse(BaseModel):
+    count: int
+
+@router.get("/count/", response_model=CountResponse)
+def get_product_count(user_id: UUID, db: Session = Depends(get_db)):
+    """Get total count of products in shops owned by a specific user"""
+    # First get all shops owned by the user
+    from models import Shop
+    shops = db.query(Shop).filter(Shop.owner_id == user_id).all()
+    shop_ids = [shop.id for shop in shops]
+    
+    # Then count products in those shops
+    count = db.query(Product).filter(Product.shop_id.in_(shop_ids)).count() if shop_ids else 0
+    return CountResponse(count=count)
