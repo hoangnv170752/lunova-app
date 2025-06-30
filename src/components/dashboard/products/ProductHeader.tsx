@@ -54,7 +54,6 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
                 onChange={(e) => setSelectedShopId(e.target.value)}
                 className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white appearance-none pr-8"
               >
-                <option value="">{t('dashboard.products.allShops') || 'All Shops'}</option>
                 {shops.map((shop) => (
                   <option key={shop.id} value={shop.id}>{shop.name}</option>
                 ))}
