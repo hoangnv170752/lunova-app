@@ -41,6 +41,7 @@ app.include_router(ticket_router)
 app.include_router(ticket_response_router)
 app.include_router(chatbot_router)
 
+
 # Root endpoint
 @app.get("/")
 def read_root():
