@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import os
-import openai
+from openai import OpenAI
 import json
 from dotenv import load_dotenv
 
@@ -14,6 +14,9 @@ from models.product import Product
 
 # Load environment variables
 load_dotenv()
+
+# Initialize OpenAI client
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 router = APIRouter(
     prefix="/chatbot",
@@ -84,11 +87,11 @@ async def chat(
     try:
         # Step 1: Use OpenAI to understand the user's query and extract search parameters
         try:
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+            completion = openai_client.chat.completions.create(
+                model="gpt-4.0-mini",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"Customer message: {request.message}\n\nAnalyze this message and extract search parameters for products and shops. IMPORTANT: Return ONLY a valid JSON object with no additional text, markdown formatting, or explanation. The JSON must follow this structure exactly: {{\"detected_language\": \"language_code\", \"product_search\": {{\"keywords\": [], \"categories\": [], \"features\": []}}, \"shop_search\": {{\"keywords\": [], \"features\": []}}, \"response_draft\": \"your draft response to the customer in their language\"}}"}                
+                    {"role": "user", "content": f"Customer message: {request.message}\n\nAnalyze this message and extract search parameters for products and shops. IMPORTANT: Return ONLY a valid JSON object with no additional text, markdown formatting, or explanation. The JSON must follow this structure exactly: {{\"detected_language\": \"language_code\", \"product_search\": {{\"keywords\": [], \"categories\": [], \"features\": []}}, \"shop_search\": {{\"keywords\": [], \"features\": []}}, \"response_draft\": \"your draft response to the customer in their language\"}}"}
                 ]
             )
         except Exception as e:
@@ -103,7 +106,7 @@ async def chat(
         # Parse the analysis
         try:
             # Get the raw content from OpenAI response
-            raw_content = completion['choices'][0]['message']['content']
+            raw_content = completion.choices[0].message.content
             
             # Try to extract JSON content - sometimes OpenAI adds markdown formatting or extra text
             # Look for content between triple backticks if present
@@ -235,15 +238,15 @@ async def chat(
             """
             
             # Get final response from OpenAI
-            final_completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+            final_completion = openai_client.chat.completions.create(
+                model="gpt-4.0-mini",
                 messages=[
                     {"role": "system", "content": "You are a helpful virtual shop assistant for Lunova, a luxury marketplace."},
                     {"role": "user", "content": final_prompt}
                 ]
             )
             
-            final_response = final_completion['choices'][0]['message']['content']
+            final_response = final_completion.choices[0].message.content
         except Exception as e:
             print(f"Error generating final response: {str(e)}")
             # Use the draft response or a fallback message
