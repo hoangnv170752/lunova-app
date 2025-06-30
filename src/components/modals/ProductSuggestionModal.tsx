@@ -184,7 +184,7 @@ const ProductSuggestionModal: React.FC<ProductSuggestionModalProps> = ({ isOpen,
     
     try {
       // Get user's language from the language context
-      const userLanguage = t('languageCode') || 'en';
+      const userLanguage = 'en';
       
       // Call the chatbot API
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/chatbot/chat`, {

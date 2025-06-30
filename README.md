@@ -25,6 +25,27 @@ The application leverages a comprehensive serverless stack:
 - Weather integration via OpenWeather API
 - Secure authentication and user management
 - Comprehensive product catalog with advanced filtering
+- AI-powered product suggestions and virtual shop assistant
+
+### Project Status
+
+See our [Task Checklist](./task-checklist.md) for completed features and upcoming development plans.
+
+### Why Lunova could be a start-up idea
+
+Lunova represents a compelling startup opportunity in the luxury e-commerce space for several reasons:
+
+- **AI-Powered Shopping Experience**: The integration of OpenAI and vector search creates a personalized shopping assistant that understands customer needs in multiple languages.
+
+- **Serverless Architecture**: The serverless-first approach ensures scalability while keeping operational costs low, perfect for a growing startup.
+
+- **Multi-language Support**: Built-in internationalization opens markets across different regions, particularly targeting English and Asian language speakers.
+
+- **Luxury Market Focus**: Targeting the high-margin luxury jewelry and souvenir market creates opportunities for premium pricing and brand positioning.
+
+- **Data-Driven Insights**: The integration of market insights and analytics provides shop owners with valuable business intelligence.
+
+- **Modular Design**: The micro-frontend architecture allows for rapid feature development and easy scaling of the team and product.
 
 ### Tech Stack
 
