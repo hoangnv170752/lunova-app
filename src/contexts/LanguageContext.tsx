@@ -470,7 +470,20 @@ const translations = {
     'footer.copyright': ' 2025 Lunova Co. All rights reserved.',
     'footer.privacy': 'Privacy Policy',
     'footer.terms': 'Terms of Service',
-    'footer.shipping': 'Shipping & Returns'
+    'footer.shipping': 'Shipping & Returns',
+    
+    // Product Suggestion Modal
+    'product.suggestions.title': 'Product Suggestions',
+    'product.suggestions.listening': 'Listening...',
+    'product.suggestions.thinking': 'Thinking...',
+    'product.suggestions.speaking': 'Speaking...',
+    'product.suggestions.suggestion': 'Suggestion:',
+    'product.suggestions.searchPlaceholder': "Type what you're looking for...",
+    'product.suggestions.search': 'Search',
+    'product.suggestions.askForSuggestion': 'Ask for Suggestion',
+    'product.suggestions.stopListening': 'Stop Listening',
+    'product.suggestions.speakAgain': 'Speak Again',
+    'product.suggestions.stopSpeaking': 'Stop Speaking'
   },
   ja: {
     // Header
@@ -918,7 +931,20 @@ const translations = {
     'footer.copyright': '© 2025 Lunova Co. All rights reserved.',
     'footer.privacy': 'プライバシーポリシー',
     'footer.terms': '利用規約',
-    'footer.shipping': '配送・返品'
+    'footer.shipping': '配送・返品',
+    
+    // Product Suggestion Modal
+    'product.suggestions.title': '商品提案',
+    'product.suggestions.listening': '聞いています...',
+    'product.suggestions.thinking': '考え中...',
+    'product.suggestions.speaking': '話しています...',
+    'product.suggestions.suggestion': '提案:',
+    'product.suggestions.searchPlaceholder': "探しているものを入力してください...",
+    'product.suggestions.search': '検索',
+    'product.suggestions.askForSuggestion': '提案を求める',
+    'product.suggestions.stopListening': '聞き取りを停止',
+    'product.suggestions.speakAgain': 'もう一度話す',
+    'product.suggestions.stopSpeaking': '発話を停止'
   }
 };
 
