@@ -17,6 +17,11 @@ The application leverages a comprehensive serverless stack:
 - **Storage**: Supabase Storage for media assets (serverless object storage)
 - **Real-time Features**: Supabase Realtime for live updates and notifications
 
+### Architecture Diagram
+
+![Lunova App Architecture](architecture.png)
+*Lunova App Architecture Overview*
+
 ### Key Features
 
 - Multi-language support (English/Japanese)

@@ -21,3 +21,5 @@
 * ⏳ Add social shopping features: share products, create wishlists, follow favorite shops
 * ⏳ Implement advanced analytics dashboard for shop owners with AI-powered sales forecasting
 * ⏳ Add blockchain-based verification for luxury products authenticity
+* ⏳ Payment with Stripe or accept Algorand payment
+* ⏳ Implement AI-powered product recommendations based on user preferences and purchase history
