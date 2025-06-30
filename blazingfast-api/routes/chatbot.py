@@ -50,8 +50,7 @@ class ChatResponse(BaseModel):
     suggested_shops: List[Dict[str, Any]] = []
     detected_language: Optional[str] = None
 
-# Initialize OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# OpenAI client is initialized above
 
 # Initialize Qdrant service
 qdrant_service = QdrantService()
