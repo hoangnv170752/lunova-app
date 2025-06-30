@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import os
-from openai import OpenAI
+import openai
 import json
 from dotenv import load_dotenv
 
@@ -16,7 +16,7 @@ from models.product import Product
 load_dotenv()
 
 # Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 router = APIRouter(
     prefix="/chatbot",
@@ -86,7 +86,7 @@ async def chat(
     try:
         # Step 1: Use OpenAI to understand the user's query and extract search parameters
         try:
-            completion = openai_client.chat.completions.create(
+            completion = openai.ChatCompletion.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -105,7 +105,7 @@ async def chat(
         # Parse the analysis
         try:
             # Get the raw content from OpenAI response
-            raw_content = completion.choices[0].message.content
+            raw_content = completion.choices[0].text
             
             # Try to extract JSON content - sometimes OpenAI adds markdown formatting or extra text
             # Look for content between triple backticks if present
@@ -237,7 +237,7 @@ async def chat(
             """
             
             # Get final response from OpenAI
-            final_completion = openai_client.chat.completions.create(
+            final_completion = openai.ChatCompletion.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are a helpful virtual shop assistant for Lunova, a luxury marketplace."},
@@ -245,7 +245,7 @@ async def chat(
                 ]
             )
             
-            final_response = final_completion.choices[0].message.content
+            final_response = final_completion.choices[0].text
         except Exception as e:
             print(f"Error generating final response: {str(e)}")
             # Use the draft response or a fallback message

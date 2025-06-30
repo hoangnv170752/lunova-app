@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { gsap } from 'gsap';
 import { Sparkles, TrendingUp, DollarSign, Users, Award, AlertCircle } from 'lucide-react';
 
@@ -22,7 +21,6 @@ interface InsightResponse {
 
 const MarketInsights: React.FC = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const [category, setCategory] = useState<string>('jewelry');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,18 +126,7 @@ const MarketInsights: React.FC = () => {
       console.log(data.insights);
       setInsights(data.insights);
       
-      // Save to local storage
-      try {
-        const storageKey = `market_insights_${user?.id}_${selectedCategory}`;
-        const storageData = {
-          insights: data.insights,
-          timestamp: new Date().getTime()
-        };
-        localStorage.setItem(storageKey, JSON.stringify(storageData));
-        console.log('Market insights saved to local storage');
-      } catch (error) {
-        console.error('Error saving to local storage:', error);
-      }
+      // No longer saving to local storage
       
       // Wait for next render cycle before animating
       setTimeout(() => {
@@ -153,7 +140,7 @@ const MarketInsights: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [category, insights, loading, user?.id]);  // Add dependencies to prevent unnecessary fetches
+  }, [category, insights, loading]);  // Add dependencies to prevent unnecessary fetches
   
   // Handle category change
   const handleCategoryChange = (newCategory: string) => {
@@ -164,50 +151,14 @@ const MarketInsights: React.FC = () => {
   // Track if component is mounted
   const isMounted = useRef(false);
   
-  // Load insights from local storage on mount
+  // Fetch insights on mount
   useEffect(() => {
-    const loadFromLocalStorage = () => {
-      try {
-        // Create a unique key based on user ID and category
-        const storageKey = `market_insights_${user?.id}_${category}`;
-        const storedData = localStorage.getItem(storageKey);
-        
-        if (storedData) {
-          const parsedData = JSON.parse(storedData);
-          const storedTimestamp = parsedData.timestamp;
-          const currentTime = new Date().getTime();
-          
-          // Check if data is less than 24 hours old
-          if (currentTime - storedTimestamp < 24 * 60 * 60 * 1000) {
-            console.log('Loading market insights from local storage');
-            setInsights(parsedData.insights);
-            
-            // Animate after a short delay to ensure DOM is ready
-            setTimeout(() => {
-              if (document.body.contains(insightCardRef.current)) {
-                animateInsights();
-              }
-            }, 100);
-            
-            return true; // Data was loaded from storage
-          }
-        }
-        return false; // No valid data in storage
-      } catch (error) {
-        console.error('Error loading from local storage:', error);
-        return false;
-      }
-    };
-    
-    // Only fetch on first mount or if local storage doesn't have valid data
+    // Only fetch on first mount
     if (!isMounted.current) {
-      const loadedFromStorage = loadFromLocalStorage();
-      if (!loadedFromStorage) {
-        fetchInsights(category);
-      }
+      fetchInsights(category);
       isMounted.current = true;
     }
-  }, [fetchInsights, category, user?.id]);
+  }, [fetchInsights, category]);
   
   return (
     <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden" ref={insightCardRef}>
@@ -264,7 +215,7 @@ const MarketInsights: React.FC = () => {
                 </div>
                 <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.marketSize') || 'Market Size'}</h3>
               </div>
-              <p className="text-2xl font-bold text-white">{insights.market_size}</p>
+              <p className="text-2xl font-bold text-white">{insights?.market_size || 'N/A'}</p>
             </div>
             
             <div className="bg-gray-800/50 rounded-lg p-5 border border-gray-700" ref={growthRateRef}>
@@ -274,7 +225,7 @@ const MarketInsights: React.FC = () => {
                 </div>
                 <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.growthRate') || 'Growth Rate'}</h3>
               </div>
-              <p className="text-2xl font-bold text-white">{insights.growth_rate}</p>
+              <p className="text-2xl font-bold text-white">{insights?.growth_rate || 'N/A'}</p>
             </div>
           </div>
           
@@ -287,14 +238,18 @@ const MarketInsights: React.FC = () => {
               <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.keyPlayers') || 'Key Players'}</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {insights.key_players.map((player, index) => (
-                <div 
-                  key={index} 
-                  className="bg-gray-700/30 px-3 py-2 rounded-md text-sm text-gray-300"
-                >
-                  {player}
-                </div>
-              ))}
+              {insights?.key_players && insights.key_players.length > 0 ? (
+                insights.key_players.map((player, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-gray-700/30 px-3 py-2 rounded-md text-sm text-gray-300"
+                  >
+                    {player}
+                  </div>
+                ))
+              ) : (
+                <div className="text-gray-400 text-sm">No key players data available</div>
+              )}
             </div>
           </div>
           
@@ -307,12 +262,16 @@ const MarketInsights: React.FC = () => {
               <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.recentDevelopments') || 'Recent Developments'}</h3>
             </div>
             <ul className="space-y-2">
-              {insights.recent_developments.map((development, index) => (
-                <li key={index} className="flex items-start space-x-2">
-                  <span className="text-yellow-400 mt-1">•</span>
-                  <span className="text-gray-300">{development}</span>
-                </li>
-              ))}
+              {insights?.recent_developments && insights.recent_developments.length > 0 ? (
+                insights.recent_developments.map((development, index) => (
+                  <li key={index} className="flex items-start space-x-2">
+                    <span className="text-yellow-400 mt-1">•</span>
+                    <span className="text-gray-300">{development}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-gray-400 text-sm">No recent developments data available</li>
+              )}
             </ul>
           </div>
           
@@ -325,12 +284,16 @@ const MarketInsights: React.FC = () => {
               <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.consumerInsights') || 'Consumer Insights'}</h3>
             </div>
             <ul className="space-y-2">
-              {insights.consumer_insights.map((insight, index) => (
-                <li key={index} className="flex items-start space-x-2">
-                  <span className="text-red-400 mt-1">•</span>
-                  <span className="text-gray-300">{insight}</span>
-                </li>
-              ))}
+              {insights?.consumer_insights && insights.consumer_insights.length > 0 ? (
+                insights.consumer_insights.map((insight, index) => (
+                  <li key={index} className="flex items-start space-x-2">
+                    <span className="text-red-400 mt-1">•</span>
+                    <span className="text-gray-300">{insight}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-gray-400 text-sm">No consumer insights data available</li>
+              )}
             </ul>
           </div>
           
@@ -343,7 +306,7 @@ const MarketInsights: React.FC = () => {
                 </div>
                 <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.averagePrice') || 'Average Price'}</h3>
               </div>
-              <p className="text-gray-300">{insights.average_price}</p>
+              <p className="text-gray-300">{insights?.average_price || 'N/A'}</p>
             </div>
             
             <div className="bg-gray-800/50 rounded-lg p-5 border border-gray-700">
@@ -353,7 +316,7 @@ const MarketInsights: React.FC = () => {
                 </div>
                 <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.priceTrend') || 'Price Trend'}</h3>
               </div>
-              <p className="text-gray-300">{insights.price_trend}</p>
+              <p className="text-gray-300">{insights?.price_trend || 'N/A'}</p>
             </div>
           </div>
         </div>

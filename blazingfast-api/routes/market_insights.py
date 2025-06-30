@@ -45,7 +45,7 @@ def query_perplexity_api(prompt: str) -> Dict[str, Any]:
     }
     
     payload = {
-        "model": "sonar-pro",
+        "model": "sonar",
         "messages": [
             {"role": "user", "content": prompt}
         ],
@@ -62,17 +62,32 @@ def query_perplexity_api(prompt: str) -> Dict[str, Any]:
         raise HTTPException(status_code=response.status_code, detail=f"Perplexity API error: {response.text}")
     
     result = response.json()
+    print(result)
     
     # Extract the response and sources
     try:
         answer = result["choices"][0]["message"]["content"]
         
-        # Try to extract sources if available
+        # Try to extract sources from citations if available
         sources = []
-        if "sources" in result:
-            sources = result["sources"]
+        if "citations" in result:
+            sources = [{"url": url} for url in result["citations"]]
         
-        # Try to parse the answer as JSON if it's in that format
+        # Extract JSON from markdown code blocks if present
+        import re
+        json_match = re.search(r'```json\n(.*?)\n```', answer, re.DOTALL)
+        
+        if json_match:
+            # Found JSON in code block
+            json_str = json_match.group(1)
+            try:
+                parsed_answer = json.loads(json_str)
+                return {"insights": parsed_answer, "sources": sources}
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON from code block: {e}")
+                # Fall through to next parsing attempt
+        
+        # If no code block or parsing failed, try parsing the entire answer
         try:
             parsed_answer = json.loads(answer)
             return {"insights": parsed_answer, "sources": sources}
