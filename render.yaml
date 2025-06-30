@@ -9,3 +9,17 @@ services:
         sync: false
       - key: VITE_OPENWEATHER_KEY
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: QDRANT_API_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: PPLX_API_KEY
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
