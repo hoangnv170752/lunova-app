@@ -105,7 +105,13 @@ async def chat(
         # Parse the analysis
         try:
             # Get the raw content from OpenAI response
-            raw_content = completion.choices[0].text
+            # The structure is different in newer OpenAI API versions
+            if hasattr(completion.choices[0], 'message') and hasattr(completion.choices[0].message, 'content'):
+                raw_content = completion.choices[0].message.content
+            elif hasattr(completion.choices[0], 'text'):
+                raw_content = completion.choices[0].text
+            else:
+                raise ValueError("Unexpected OpenAI API response structure")
             
             # Try to extract JSON content - sometimes OpenAI adds markdown formatting or extra text
             # Look for content between triple backticks if present
@@ -245,7 +251,13 @@ async def chat(
                 ]
             )
             
-            final_response = final_completion.choices[0].text
+            # Handle different response structures from OpenAI API
+            if hasattr(final_completion.choices[0], 'message') and hasattr(final_completion.choices[0].message, 'content'):
+                final_response = final_completion.choices[0].message.content
+            elif hasattr(final_completion.choices[0], 'text'):
+                final_response = final_completion.choices[0].text
+            else:
+                raise ValueError("Unexpected OpenAI API response structure")
         except Exception as e:
             print(f"Error generating final response: {str(e)}")
             # Use the draft response or a fallback message

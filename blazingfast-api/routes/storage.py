@@ -8,6 +8,17 @@ from datetime import datetime
 import base64
 import mimetypes
 import io
+import openai
+from dotenv import load_dotenv
+from PIL import Image
+import requests
+from io import BytesIO
+
+# Load environment variables
+load_dotenv()
+
+# Initialize OpenAI client
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 router = APIRouter(
     prefix="/storage",
@@ -22,7 +33,8 @@ STORAGE_BUCKET = "images"
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    folder: str = Form("products")  # Default folder inside the bucket
+    folder: str = Form("products"),  # Default folder inside the bucket
+    enhance: bool = Form(False)  # Option to enhance image with AI
 ):
     """
     Upload a file to Supabase Storage and return the URL.
@@ -39,10 +51,23 @@ async def upload_file(
         print(f"Storage bucket: {STORAGE_BUCKET}")
         print(f"File name: {file.filename}")
         print(f"Content type: {file.content_type}")
+        print(f"Enhance with AI: {enhance}")
         
         # Read file content
         file_content = await file.read()
         print(f"File content length: {len(file_content)} bytes")
+        
+        # If enhance is requested, process the image with OpenAI's GPT-4 Vision
+        if enhance and file.content_type.startswith('image/'):
+            try:
+                print("Starting AI image enhancement...")
+                enhanced_content = await enhance_image_with_ai(file_content, file.content_type)
+                if enhanced_content:
+                    file_content = enhanced_content
+                    print("Image successfully enhanced with AI")
+            except Exception as e:
+                print(f"Error enhancing image with AI: {str(e)}")
+                # Continue with original image if enhancement fails
         
         # Generate a unique filename to avoid collisions
         file_ext = os.path.splitext(file.filename)[1]
@@ -175,6 +200,73 @@ async def upload_base64_file(
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+
+async def enhance_image_with_ai(image_content: bytes, content_type: str) -> bytes:
+    """
+    Enhance an image using OpenAI's GPT-image-1 model.
+    
+    - Removes background
+    - Improves image quality
+    - Returns the enhanced image as bytes
+    """
+    try:
+        # Convert bytes to base64 for OpenAI API
+        base64_image = base64.b64encode(image_content).decode('utf-8')
+        
+        # Call OpenAI API to get enhanced image using the image generation API
+        response = openai.Image.create(
+            model="gpt-image-1",
+            prompt="Enhance this product image by removing the background completely. Make it transparent or clean white and improve the overall quality.",
+            n=1,  # Generate one image
+            size="1024x1024",
+            response_format="b64_json",  # Get base64 encoded image back
+            image=base64_image  # Pass the base64 encoded image
+        )
+        
+        # Extract the base64 image data from the response
+        if 'data' in response and len(response['data']) > 0 and 'b64_json' in response['data'][0]:
+            # Get the base64 encoded image data
+            enhanced_base64 = response['data'][0]['b64_json']
+            
+            # Convert base64 back to bytes
+            enhanced_image_bytes = base64.b64decode(enhanced_base64)
+            return enhanced_image_bytes
+        
+        # If we couldn't extract an image URL or download failed, return original
+        return image_content
+    except Exception as e:
+        print(f"Error in AI image enhancement: {str(e)}")
+        # Return original image if enhancement fails
+        return image_content
+
+@router.post("/enhance-image")
+async def enhance_image(
+    file: UploadFile = File(...),
+):
+    """
+    Enhance an image using AI without uploading it to storage.
+    Returns the enhanced image as a base64 string.
+    """
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+        
+    try:
+        # Read file content
+        file_content = await file.read()
+        
+        # Enhance the image
+        enhanced_content = await enhance_image_with_ai(file_content, file.content_type)
+        
+        # Convert to base64 for response
+        base64_enhanced = base64.b64encode(enhanced_content).decode('utf-8')
+        
+        return {
+            "enhanced_image": f"data:{file.content_type};base64,{base64_enhanced}",
+            "original_filename": file.filename,
+            "content_type": file.content_type
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error enhancing image: {str(e)}")
 
 @router.delete("/{folder}/{filename}")
 async def delete_file(

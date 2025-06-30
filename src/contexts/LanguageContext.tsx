@@ -102,6 +102,7 @@ const translations = {
     'dashboard.searchUsers': 'Search users...',
     'dashboard.sortingBy': 'Sorting By',
     'dashboard.filters': 'Filters',
+    'dashboard.createYourFirstShop': 'Create your first shop',
     'dashboard.userName': 'User Name',
     'dashboard.emailAddress': 'Email Address',
     'dashboard.city': 'City',
@@ -240,6 +241,9 @@ const translations = {
     'dashboard.products.outOfStock': 'Out of Stock',
     'dashboard.products.noProducts': 'No products available. Create your first product!',
     'dashboard.products.noProductsFound': 'No products found matching your search.',
+    'dashboard.products.noShops': 'No Shops Found',
+    'dashboard.products.noShopsDescription': 'You need to create a shop before you can add products.',
+    'dashboard.products.enhanceWithAI': 'Enhance with AI (remove background)',
     'dashboard.products.createProductDescription': 'Fill in the details to create a new product.',
     'dashboard.products.editProductDescription': 'Update your product information below.',
     'dashboard.products.selectShop': 'Select Shop',
@@ -558,6 +562,7 @@ const translations = {
     
     // Dashboard
     'dashboard.create': '成功する',
+    'dashboard.createYourFirstShop': 'ショップを作成する',
     'dashboard.products.images': '画像',
     'dashboard.dashboard': 'ダッシュボード',
     'dashboard.welcome': 'おかえりなさい',

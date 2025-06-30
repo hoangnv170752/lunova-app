@@ -32,16 +32,19 @@ const ProductDashboard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shops, setShops] = useState<{id: string, name: string}[]>([]);
   
-  // State for image upload modal
-  const [showImageUploadModal, setShowImageUploadModal] = useState(false);
+  // State for image upload
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
-  const [isAiProcessing, setIsAiProcessing] = useState(false);
-  const [aiEnhancedImages, setAiEnhancedImages] = useState<{original: File, enhanced: string}[]>([]);
   const [verifyingImage, setVerifyingImage] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [enhanceWithAI, setEnhanceWithAI] = useState<boolean>(false);
+  const [aiEnhancedImages, setAiEnhancedImages] = useState<{original: File, enhanced: string}[]>([]);
   const [uploadedUrls, setUploadedUrls] = useState<{file: File, url: string}[]>([]);
+  
+  // Image upload modal state
+  const [showImageUploadModal, setShowImageUploadModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
 
   // State for product form data
   const [formData, setFormData] = useState<ProductFormData>({
@@ -64,13 +67,17 @@ const ProductDashboard: React.FC = () => {
 
   // Function to fetch products based on shop ID
   const fetchProducts = useCallback(async (shopId: string) => {
+    // Don't fetch products if no shop ID is provided
+    if (!shopId) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
-      // Build URL with query parameters if shop_id is selected
-      let url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/`;
-      if (shopId) {
-        url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/?shop_id=${shopId}`;
-      }
+      // Build URL with shop_id parameter
+      const url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/products/?shop_id=${shopId}`;
       
       const response = await fetch(url);
       if (!response.ok) {
@@ -90,6 +97,10 @@ const ProductDashboard: React.FC = () => {
   useEffect(() => {
     const fetchShops = async () => {
       try {
+        // Reset products when fetching shops
+        setProducts([]);
+        setLoading(true);
+        
         if (user?.id) {
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/?owner_id=${user.id}`);
           if (!response.ok) {
@@ -99,15 +110,19 @@ const ProductDashboard: React.FC = () => {
           const shopsList = data.map((shop: {id: string, name: string}) => ({ id: shop.id, name: shop.name }));
           setShops(shopsList);
           
-          // Automatically select the first shop and fetch its products
+          // Only fetch products if there are shops
           if (shopsList.length > 0) {
             const firstShopId = shopsList[0].id;
             setSelectedShopId(firstShopId);
             fetchProducts(firstShopId);
+          } else {
+            // No shops, so no need to load products
+            setLoading(false);
           }
         }
       } catch (err) {
         console.error('Error fetching shops:', err);
+        setLoading(false);
       }
     };
 
@@ -327,7 +342,7 @@ const ProductDashboard: React.FC = () => {
       setImageUploadError(t('dashboard.products.noImagesSelected') || 'Please select at least one image');
     }
   };
-  
+
   const handleVerifyUpload = async () => {
     if (!verifyingImage || !selectedProduct) return;
     
@@ -339,8 +354,9 @@ const ProductDashboard: React.FC = () => {
       const formData = new FormData();
       formData.append('file', verifyingImage);
       formData.append('folder', 'products');
+      formData.append('enhance', enhanceWithAI.toString());
       
-      console.log('Uploading file:', verifyingImage.name, 'size:', verifyingImage.size);
+      console.log('Uploading file:', verifyingImage.name, 'size:', verifyingImage.size, 'enhance:', enhanceWithAI);
       
       // Upload the file to storage
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/storage/upload`, {
@@ -509,6 +525,9 @@ const ProductDashboard: React.FC = () => {
     });
   };
 
+  // Check if user has any shops
+  const hasShops = shops.length > 0;
+
   return (
     <div className="flex h-screen bg-gray-950 text-white">
       {/* Product Form Modal */}
@@ -584,6 +603,22 @@ const ProductDashboard: React.FC = () => {
                     <div className="flex-1">
                       <p className="text-sm text-gray-300 mb-1">{verifyingImage.name}</p>
                       <p className="text-xs text-gray-400">{(verifyingImage.size / 1024).toFixed(1)} KB</p>
+                      
+                      {/* AI Enhancement Option */}
+                      <div className="flex items-center mt-3 bg-blue-900/30 p-2 rounded-md border border-blue-800/30">
+                        <input
+                          id="enhance-ai"
+                          name="enhance-ai"
+                          type="checkbox"
+                          className="h-4 w-4 text-yellow-500 focus:ring-yellow-400 border-gray-600 rounded"
+                          checked={enhanceWithAI}
+                          onChange={(e) => setEnhanceWithAI(e.target.checked)}
+                        />
+                        <label htmlFor="enhance-ai" className="ml-2 block text-xs text-blue-200 flex items-center gap-1">
+                          <Sparkles size={12} className="text-yellow-400" />
+                          {t('dashboard.products.enhanceWithAI') || 'Enhance with AI (remove background)'}
+                        </label>
+                      </div>
                     </div>
                   </div>
                   
@@ -824,51 +859,72 @@ const ProductDashboard: React.FC = () => {
 
         {/* Product Content */}
         <div className="flex-1 p-6 overflow-auto">
-          <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
-            {/* Product Header with Search and Filters */}
-            <ProductHeader
-              productCount={products.length}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedShopId={selectedShopId}
-              setSelectedShopId={setSelectedShopId}
-              shops={shops}
-              onAddProduct={handleAddProduct}
-            />
-            
-            {/* Upload Images Button */}
-            <div className="mb-4 flex justify-end px-5">
-              <button
-                onClick={openImageUploadModal}
-                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                disabled={!selectedProduct}
-              >
-                <Upload size={16} />
-                {selectedProduct 
-                  ? `${t('dashboard.products.manageImages') || 'Manage Images'}: ${selectedProduct.name}` 
-                  : t('dashboard.products.uploadImages') || 'Upload Images'}
-              </button>
+          {hasShops ? (
+            <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+              {/* Product Header with Search and Filters */}
+              <ProductHeader
+                productCount={products.length}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedShopId={selectedShopId}
+                setSelectedShopId={setSelectedShopId}
+                shops={shops}
+                onAddProduct={handleAddProduct}
+              />
+              
+              {/* Upload Images Button */}
+              <div className="mb-4 flex justify-end px-5">
+                <button
+                  onClick={openImageUploadModal}
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  disabled={!selectedProduct}
+                >
+                  <Upload size={16} />
+                  {selectedProduct 
+                    ? `${t('dashboard.products.manageImages') || 'Manage Images'}: ${selectedProduct.name}` 
+                    : t('dashboard.products.uploadImages') || 'Upload Images'}
+                </button>
+              </div>
+
+              {/* Product Table */}
+              <ProductTable
+                loading={loading}
+                searchQuery={searchQuery}
+                filteredProducts={filteredProducts}
+                onEdit={handleEditProduct}
+                onDelete={handleDeleteProduct}
+                selectedProduct={selectedProduct}
+                onSelectProduct={handleSelectProduct}
+                onRefresh={() => fetchProducts(selectedShopId)}
+              />
+
+              {/* Pagination */}
+              <ProductPagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredProducts.length / 10) || 1}
+                onPageChange={setCurrentPage}
+              />
             </div>
-
-            {/* Product Table */}
-            <ProductTable
-              loading={loading}
-              searchQuery={searchQuery}
-              filteredProducts={filteredProducts}
-              onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
-              selectedProduct={selectedProduct}
-              onSelectProduct={handleSelectProduct}
-              onRefresh={() => fetchProducts(selectedShopId)}
-            />
-
-            {/* Pagination */}
-            <ProductPagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(filteredProducts.length / 10) || 1}
-              onPageChange={setCurrentPage}
-            />
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-10 max-w-md">
+                <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-800/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400">
+                    <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+                    <path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"></path>
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold mb-2 text-white">{t('dashboard.products.noShops') || 'No Shops Found'}</h2>
+                <p className="text-gray-400 mb-6">{t('dashboard.products.noShopsDescription') || 'You need to create a shop before you can add products.'}</p>
+                <a 
+                  href="/dashboard/shop" 
+                  className="inline-flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium px-6 py-3 rounded-lg transition-colors"
+                >
+                  {t('dashboard.createYourFirstShop') || 'Create your first shop'}
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
