@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Mic, Volume2 } from 'lucide-react';
+import { X, Mic, Volume2, ShoppingBag } from 'lucide-react';
 import gsap from 'gsap';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { Link } from 'react-router-dom';
 
 interface ProductSuggestionModalProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ const ProductSuggestionModal: React.FC<ProductSuggestionModalProps> = ({ isOpen,
     };
   }, []);
   
-  // GSAP animation for modal
+  // GSAP animation for modal and show greeting when opened
   useEffect(() => {
     if (isOpen && modalRef.current && modalOverlayRef.current) {
       // Animate modal overlay
@@ -76,8 +77,19 @@ const ProductSuggestionModal: React.FC<ProductSuggestionModalProps> = ({ isOpen,
         { y: -50, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }
       );
+      
+      // Show greeting message when modal opens
+      const userLanguage = t('languageCode') || 'en';
+      const greetings = {
+        en: "Hello! I'm Lunova's virtual assistant. How can I help you find the perfect product today?",
+        vi: "Xin chào! Tôi là trợ lý ảo của Lunova. Tôi có thể giúp bạn tìm sản phẩm phù hợp hôm nay như thế nào?"
+      };
+      
+      const greeting = userLanguage === 'vi' ? greetings.vi : greetings.en;
+      setSuggestion(greeting);
+      speakText(greeting);
     }
-  }, [isOpen]);
+  }, [isOpen, t]);
   
   // Voice animation effect
   useEffect(() => {
@@ -165,36 +177,41 @@ const ProductSuggestionModal: React.FC<ProductSuggestionModalProps> = ({ isOpen,
     }
   };
   
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
+  
   const handleGetSuggestion = async (query: string) => {
     setIsLoading(true);
     
     try {
-      // Mock API call - replace with actual API call to your backend
-      // const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/product-suggestions`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ query })
-      // });
-      // const data = await response.json();
-      // setSuggestion(data.suggestion);
+      // Get user's language from the language context
+      const userLanguage = t('languageCode') || 'en';
       
-      console.log(`Getting suggestion for query: ${query}`);
+      // Call the chatbot API
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/chatbot/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: query,
+          language: userLanguage
+        })
+      });
       
-      // Mock response for demonstration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockSuggestions = [
-        "Based on your interests, I recommend our premium wireless headphones with noise cancellation.",
-        "You might enjoy our new collection of smart home devices that integrate with your existing setup.",
-        "Our latest fashion line includes sustainable materials that match your previous purchases.",
-        "Consider our limited edition gaming accessories with customizable RGB lighting.",
-        "Our organic skincare products have received excellent reviews from customers with similar preferences."
-      ];
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
       
-      const randomSuggestion = mockSuggestions[Math.floor(Math.random() * mockSuggestions.length)];
-      setSuggestion(randomSuggestion);
+      const data = await response.json();
+      console.log('Chatbot response:', data);
       
-      // Speak the suggestion
-      speakText(randomSuggestion);
+      // Update state with response data
+      setSuggestion(data.response);
+      setSuggestedProducts(data.suggested_products || []);
+      
+      // Store detected language for potential future use
+      // (removing the unused variable warning)
+      
+      // Speak the suggestion if text-to-speech is enabled
+      speakText(data.response);
     } catch (error) {
       console.error('Error getting product suggestion:', error);
       setSuggestion('Sorry, I could not generate a suggestion at this time. Please try again later.');
@@ -252,22 +269,21 @@ const ProductSuggestionModal: React.FC<ProductSuggestionModalProps> = ({ isOpen,
   
   return (
     <div 
-      ref={modalOverlayRef}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
-      onClick={handleBackdropClick}
+        ref={modalOverlayRef}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+        onClick={handleBackdropClick}
     >
-      <div 
-        ref={modalRef}
-        className="bg-gray-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-800"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
-          <h2 className="text-xl font-semibold text-white">{t('product.suggestions.title') || 'Product Suggestions'}</h2>
-          <button 
-            onClick={handleClose}
-            className="p-1 rounded-full hover:bg-gray-800 transition-colors"
-          >
+        <div
+            className="bg-gray-900 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl shadow-lg p-6"
+            onClick={(e) => e.stopPropagation()} // Prevent click from bubbling
+        >
+            {/* Modal header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                <h2 className="text-xl font-semibold text-white">{t('product.suggestions.title') || 'Product Suggestions'}</h2>
+                <button 
+                    onClick={handleClose}
+                    className="p-1 rounded-full hover:bg-gray-800 transition-colors"
+                >
             <X className="h-5 w-5 text-gray-400" />
           </button>
         </div>
@@ -306,6 +322,49 @@ const ProductSuggestionModal: React.FC<ProductSuggestionModalProps> = ({ isOpen,
             <div className="mb-6">
               <h3 className="text-sm text-gray-400 mb-1">{t('product.suggestions.suggestion') || 'Suggestion:'}</h3>
               <p className="text-white bg-gray-800 p-3 rounded-lg">{suggestion}</p>
+            </div>
+          )}
+          
+          {/* Suggested Products */}
+          {suggestedProducts && suggestedProducts.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm text-gray-400 mb-2">{t('product.suggestions.suggestedProducts') || 'Suggested Products:'}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-2">
+                {suggestedProducts.map((item, index) => (
+                  <Link 
+                    to={`/product/${item.product.id}`} 
+                    key={`${item.product.id}-${index}`}
+                    className="flex bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition-colors"
+                  >
+                    {/* Product Image */}
+                    {item.images && item.images.length > 0 && (
+                      <div className="w-24 h-24 flex-shrink-0">
+                        <img 
+                          src={item.images[0].image_url} 
+                          alt={item.images[0].alt_text || item.product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Product Details */}
+                    <div className="p-3 flex-1">
+                      <h4 className="text-white text-sm font-medium line-clamp-2">{item.product.name}</h4>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-yellow-400 text-sm">
+                          ${parseFloat(item.product.price).toFixed(2)}
+                          {item.product.sale_price && parseFloat(item.product.sale_price) > 0 && (
+                            <span className="text-gray-400 line-through ml-2">
+                              ${parseFloat(item.product.sale_price).toFixed(2)}
+                            </span>
+                          )}
+                        </p>
+                        <ShoppingBag className="h-4 w-4 text-gray-400" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
           

@@ -483,7 +483,9 @@ const translations = {
     'product.suggestions.askForSuggestion': 'Ask for Suggestion',
     'product.suggestions.stopListening': 'Stop Listening',
     'product.suggestions.speakAgain': 'Speak Again',
-    'product.suggestions.stopSpeaking': 'Stop Speaking'
+    'product.suggestions.stopSpeaking': 'Stop Speaking',
+    'product.suggestions.suggestedProducts': 'Suggested Products',
+
   },
   ja: {
     // Header
@@ -760,7 +762,8 @@ const translations = {
     'dashboard.marketInsights.error': '市場洞察の読み込みに失敗しました。後でもう一度お試しください。',
     'dashboard.marketInsights.noInsights': '洞察が利用できません。カテゴリを選択してください。',
     'dashboard.marketInsights.categories.jewelry': 'ジュエリー',
-    
+    'product.suggestions.suggestedProducts': '提案された製品',
+
     // Mobile Warning
     'mobile.notSupported': 'モバイル非対応',
     'mobile.notSupportedMessage': 'Lunovaダッシュボードはモバイルデバイス向けに最適化されていません。デスクトップまたはタブレットの横向きモードをご使用ください。',
