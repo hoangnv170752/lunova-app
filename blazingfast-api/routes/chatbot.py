@@ -87,7 +87,7 @@ async def chat(
         # Step 1: Use OpenAI to understand the user's query and extract search parameters
         try:
             completion = openai_client.chat.completions.create(
-                model="gpt-4.0-mini",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": f"Customer message: {request.message}\n\nAnalyze this message and extract search parameters for products and shops. IMPORTANT: Return ONLY a valid JSON object with no additional text, markdown formatting, or explanation. The JSON must follow this structure exactly: {{\"detected_language\": \"language_code\", \"product_search\": {{\"keywords\": [], \"categories\": [], \"features\": []}}, \"shop_search\": {{\"keywords\": [], \"features\": []}}, \"response_draft\": \"your draft response to the customer in their language\"}}"}
@@ -238,7 +238,7 @@ async def chat(
             
             # Get final response from OpenAI
             final_completion = openai_client.chat.completions.create(
-                model="gpt-4.0-mini",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are a helpful virtual shop assistant for Lunova, a luxury marketplace."},
                     {"role": "user", "content": final_prompt}
