@@ -241,6 +241,10 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               <WeatherDisplay />
+
+              <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" className="flex items-center bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded">
+                Built with Bolt.new
+              </a>
               
               <button className="text-gray-400 hover:text-yellow-400 transition-colors">
                 <Bell className="h-5 w-5" />
