@@ -92,9 +92,14 @@ const Footer: React.FC = () => {
         
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              {t('footer.copyright')}
-            </p>
+            <div className="flex items-center mb-4 md:mb-0">
+              <p className="text-gray-400 text-sm">
+                {t('footer.copyright')}
+              </p>
+              <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" className="ml-4 flex items-center bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded">
+                Built with Bolt.new
+              </a>
+            </div>
             <div className="flex space-x-6 text-sm">
               <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">{t('footer.privacy')}</a>
               <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">{t('footer.terms')}</a>
