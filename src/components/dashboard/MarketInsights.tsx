@@ -196,8 +196,9 @@ const MarketInsights: React.FC = () => {
       </div>
       
       {loading ? (
-        <div className="flex items-center justify-center p-12">
+        <div className="flex flex-col items-center justify-center p-12 space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+          <p className="text-gray-300 text-center">{t('dashboard.marketInsights.loading') || 'Loading business insights...'}</p>
         </div>
       ) : error ? (
         <div className="p-6 text-center">
@@ -253,28 +254,6 @@ const MarketInsights: React.FC = () => {
             </div>
           </div>
           
-          {/* Recent Developments */}
-          <div className="bg-gray-800/50 rounded-lg p-5 border border-gray-700" ref={developmentsRef}>
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <Sparkles className="h-5 w-5 text-yellow-400" />
-              </div>
-              <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.recentDevelopments') || 'Recent Developments'}</h3>
-            </div>
-            <ul className="space-y-2">
-              {insights?.recent_developments && insights.recent_developments.length > 0 ? (
-                insights.recent_developments.map((development, index) => (
-                  <li key={index} className="flex items-start space-x-2">
-                    <span className="text-yellow-400 mt-1">•</span>
-                    <span className="text-gray-300">{development}</span>
-                  </li>
-                ))
-              ) : (
-                <li className="text-gray-400 text-sm">No recent developments data available</li>
-              )}
-            </ul>
-          </div>
-          
           {/* Consumer Insights */}
           <div className="bg-gray-800/50 rounded-lg p-5 border border-gray-700" ref={consumerInsightsRef}>
             <div className="flex items-center space-x-3 mb-4">
@@ -293,6 +272,28 @@ const MarketInsights: React.FC = () => {
                 ))
               ) : (
                 <li className="text-gray-400 text-sm">No consumer insights data available</li>
+              )}
+            </ul>
+          </div>
+          
+          {/* Recent Developments */}
+          <div className="bg-gray-800/50 rounded-lg p-5 border border-gray-700" ref={developmentsRef}>
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <Sparkles className="h-5 w-5 text-yellow-400" />
+              </div>
+              <h3 className="text-md font-medium text-white">{t('dashboard.marketInsights.recentDevelopments') || 'Recent Developments'}</h3>
+            </div>
+            <ul className="space-y-2">
+              {insights?.recent_developments && insights.recent_developments.length > 0 ? (
+                insights.recent_developments.map((development, index) => (
+                  <li key={index} className="flex items-start space-x-2">
+                    <span className="text-yellow-400 mt-1">•</span>
+                    <span className="text-gray-300">{development}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="text-gray-400 text-sm">No recent developments data available</li>
               )}
             </ul>
           </div>
