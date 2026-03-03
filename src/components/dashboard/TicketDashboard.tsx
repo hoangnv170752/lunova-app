@@ -320,22 +320,34 @@ const TicketDashboard: React.FC = () => {
       // Make API request
       const response = await fetch(`${endpoint}?${params.toString()}`);
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      // Success: treat empty or valid list as "no tickets" (show empty state, not error)
+      if (response.ok && response.status === 200) {
+        let data: unknown;
+        try {
+          const text = await response.text();
+          data = text ? JSON.parse(text) : [];
+        } catch {
+          // Non-JSON or empty body → treat as no tickets
+          setTickets([]);
+          setTotalPages(0);
+          setLoading(false);
+          return;
+        }
+        console.log('API response data:', data);
+        const list = Array.isArray(data) ? data : (data && typeof data === 'object' && 'items' in data ? (data as { items?: unknown[] }).items : null);
+        const items = Array.isArray(list) ? list : [];
+        const total = (data && typeof data === 'object' && 'total' in data && typeof (data as { total?: number }).total === 'number')
+          ? (data as { total: number }).total
+          : items.length;
+        setTickets(items);
+        setTotalPages(Math.max(1, Math.ceil(total / itemsPerPage)));
+        setLoading(false);
+        return;
       }
       
-      const data = await response.json();
-      console.log('API response data:', data);
-      
-      if (Array.isArray(data)) {
-        setTickets(data);
-        setTotalPages(Math.ceil(data.length / itemsPerPage));
-      } else {
-        setTickets(data.items || []);
-        // Calculate total pages
-        const total = data.total || 0;
-        setTotalPages(Math.ceil(total / itemsPerPage));
-      }
+      // Non-2xx: real API error
+      setError('Failed to load tickets. Please try again.');
+      setTickets([]);
     } catch (err) {
       console.error('Failed to fetch tickets:', err);
       setError('Failed to load tickets. Please try again.');
@@ -730,7 +742,7 @@ const TicketDashboard: React.FC = () => {
             {/* Empty state */}
             {!loading && !error && tickets.length === 0 && (
               <div className="p-8 text-center">
-                <p className="text-gray-400">{t('dashboard.tickets.noTickets') || 'No tickets found'}</p>
+                <p className="text-gray-400">{t('dashboard.tickets.noTickets') || 'No tickets created'}</p>
               </div>
             )}
 
