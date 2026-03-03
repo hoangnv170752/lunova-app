@@ -19,6 +19,9 @@ VITE_OPENWEATHER_KEY=your_openweather_api_key
 
 If you're using Supabase, update the `POSTGRES_URL` accordingly.
 
+**If you get "could not translate host name ... supabase.co":**  
+Use the **connection pooler** URL from Supabase instead of the direct DB host. In Supabase: **Project Settings → Database → Connection string → URI**, then choose **Session** or **Transaction** (pooler). It uses a host like `aws-0-<region>.pooler.supabase.com` and port **6543**, which often resolves when the direct `db.*.supabase.co` host does not. Also ensure the project is not paused (free tier projects pause after inactivity).
+
 ## Building and Running with Docker
 
 ### Option 1: Using Docker Compose (Development)

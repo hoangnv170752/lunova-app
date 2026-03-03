@@ -2,16 +2,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 
 from models import Base, engine
 from routes import product_router, shop_router, product_image_router, product_tryon_image_router, storage_router, user_setting_router, market_insights_router, ticket_router, ticket_response_router, chatbot_router
 
-# Load environment variables
+# Load environment variables (current dir and repo root)
 load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-# Create tables in the database
-Base.metadata.create_all(bind=engine)
+# Create tables in the database (skip if DB unreachable, e.g. DNS/network)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    import warnings
+    warnings.warn(f"DB connection failed at startup (tables may already exist): {e}")
 
 # Create FastAPI app
 app = FastAPI(

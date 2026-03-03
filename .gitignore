@@ -59,3 +59,4 @@ htmlcov/
 # blazingfast-api local files
 blazingfast-api/.env
 .vercel
+blazingfast-api/venv

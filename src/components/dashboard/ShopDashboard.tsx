@@ -91,7 +91,9 @@ const ShopDashboard: React.FC = () => {
       website: ''
     }
   });
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);// Filter shops based on search query
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+  // Filter shops based on search query
   const filteredShops = shops.filter(shop => 
     shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     shop.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -102,34 +104,44 @@ const ShopDashboard: React.FC = () => {
   // Fetch shops from API
   useEffect(() => {
     const fetchShops = async () => {
+      setLoading(true);
+      setError(null);
+      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const url = user?.id
+        ? `${baseUrl}/shops/?owner_id=${user.id}`
+        : `${baseUrl}/shops/`;
       try {
-        setLoading(true);
-        // Replace with your actual API endpoint
-        let url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/`;
-        console.log(url)
-        // If user is logged in and not an admin, only fetch their shops
-        if (user && user.id) {
-          url = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/shops/?owner_id=${user.id}`;
-        }
-        
         const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch shops');
+        if (response.ok && response.status === 200) {
+          let data: unknown;
+          try {
+            const text = await response.text();
+            data = text ? JSON.parse(text) : [];
+          } catch {
+            setShops([]);
+            setLoading(false);
+            return;
+          }
+          const list = Array.isArray(data)
+            ? data
+            : (data && typeof data === 'object' && 'items' in data ? (data as { items?: unknown[] }).items : null);
+          setShops(Array.isArray(list) ? list : []);
+          setLoading(false);
+          return;
         }
-        
-        const data = await response.json();
-        setShops(data);
-        setLoading(false);
-      } catch (err) {
         setError('Error fetching shops. Please try again later.');
-        setLoading(false);
+        setShops([]);
+      } catch (err) {
         console.error('Error fetching shops:', err);
+        setError('Error fetching shops. Please try again later.');
+        setShops([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchShops();
-  }, [user]);
+  }, [user, fetchTrigger]);
 
   
 
@@ -298,9 +310,9 @@ const ShopDashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <WeatherDisplay />
 
-              <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" className="flex items-center bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded">
+              {/* <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" className="flex items-center bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded">
                 Built with Bolt.new
-              </a>
+              </a> */}
               
               <button className="text-gray-400 hover:text-yellow-400 transition-colors">
                 <Bell className="h-5 w-5" />
@@ -353,9 +365,18 @@ const ShopDashboard: React.FC = () => {
 
           {/* Error message */}
           {error && (
-            <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded mb-4 flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              {error}
+            <div className="bg-red-900/30 border border-red-800 text-red-400 px-4 py-3 rounded mb-4 flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setError(null); setFetchTrigger(t => t + 1); }}
+                className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white"
+              >
+                {t('dashboard.tryAgain') || 'Try again'}
+              </button>
             </div>
           )}
 
