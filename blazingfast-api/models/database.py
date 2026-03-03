@@ -2,10 +2,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables (current dir and repo root so root .env is used)
 load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 # Get database URL from environment variable
 POSTGRES_URL = os.getenv("POSTGRES_URL")

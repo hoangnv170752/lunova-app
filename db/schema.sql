@@ -6,7 +6,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Set up RLS (Row Level Security)
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret-here';
+-- JWT secret: requires superuser. On Supabase this is managed for you; for self-hosted
+-- Postgres run as superuser if needed: ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-secret';
+-- ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret-here';
 
 -- USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
