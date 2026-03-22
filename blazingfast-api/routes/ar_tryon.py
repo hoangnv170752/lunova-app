@@ -30,8 +30,13 @@ async def _resolve_overlay(
     margin_y: Optional[int],
     scale_w: Optional[float],
     scale_h: Optional[float],
-) -> Tuple[np.ndarray, int, int, float, float]:
-    """Load overlay BGRA and margins/scales from preset or uploaded file."""
+) -> Tuple[np.ndarray, int, int, float, float, float, bool, bool]:
+    """
+    Returns overlay_bgra, mx, my, dw, dh, drop_factor, use_face_height, use_form_placement.
+
+    If overlay file uploaded, drop_factor/use_face_height placeholders; caller uses Form values.
+    If server preset, drop_factor/use_face_height come from jewellery.json.
+    """
     if overlay is not None and overlay.filename:
         obytes = await overlay.read()
         overlay_bgra = cv2.imdecode(np.frombuffer(obytes, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
@@ -45,7 +50,7 @@ async def _resolve_overlay(
         my = int(margin_y if margin_y is not None else 0)
         dw = float(scale_w if scale_w is not None else 1.0)
         dh = float(scale_h if scale_h is not None else 1.0)
-        return overlay_bgra, mx, my, dw, dh
+        return overlay_bgra, mx, my, dw, dh, 0.0, False, True
 
     presets = load_jewellery_presets()
     jid = jewellery_id or (next(iter(presets.keys())) if presets else None)
@@ -61,7 +66,9 @@ async def _resolve_overlay(
     my = int(margin_y if margin_y is not None else cfg.get("y", 0))
     dw = float(scale_w if scale_w is not None else cfg.get("dw", 1.0))
     dh = float(scale_h if scale_h is not None else cfg.get("dh", 1.0))
-    return overlay_bgra, mx, my, dw, dh
+    drop = float(cfg.get("drop_factor", 0) or 0)
+    ufh = bool(cfg.get("use_face_height", False))
+    return overlay_bgra, mx, my, dw, dh, drop, ufh, False
 
 
 @router.get("/presets")
@@ -75,6 +82,8 @@ def list_jewellery_presets() -> dict[str, Any]:
             "y": cfg.get("y", 0),
             "dw": cfg.get("dw", 1.0),
             "dh": cfg.get("dh", 1.0),
+            "drop_factor": cfg.get("drop_factor", 0.0),
+            "use_face_height": cfg.get("use_face_height", False),
         }
     return {"presets": out, "config_path": str(JEWELLERY_JSON)}
 
@@ -96,6 +105,26 @@ async def compose_ar_tryon(
     flip_horizontal: bool = Form(False),
     output_format: str = Form("png"),
     return_original_if_no_face: bool = Form(False),
+    detect_scale_factor: Optional[float] = Form(
+        None,
+        description="Optional OpenCV Haar scaleFactor (e.g. 1.1). Leave empty for auto multi-pass.",
+    ),
+    detect_min_neighbors: Optional[int] = Form(
+        None,
+        ge=1,
+        le=10,
+        description="Optional minNeighbors for Haar. Use with detect_scale_factor.",
+    ),
+    drop_factor: float = Form(
+        0.0,
+        ge=0.0,
+        le=0.6,
+        description="Push overlay down by this fraction of face height (necklaces on neck).",
+    ),
+    use_face_height: bool = Form(
+        False,
+        description="Scale dw/dh against face height instead of width.",
+    ),
 ) -> Response:
     """
     Apply virtual jewellery overlay using Haar frontal face detection (ARJewelBox-style).
@@ -106,14 +135,16 @@ async def compose_ar_tryon(
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Empty image upload")
 
-    overlay_bgra, mx, my, dw, dh = await _resolve_overlay(
+    ob, mx, my, dw, dh, preset_drop, preset_ufh, use_form_placement = await _resolve_overlay(
         jewellery_id, overlay, margin_x, margin_y, scale_w, scale_h
     )
+    d_drop = drop_factor if use_form_placement else preset_drop
+    d_ufh = use_face_height if use_form_placement else preset_ufh
 
     try:
         out_bytes, meta = compose_from_bytes(
             image_bytes,
-            overlay_bgra,
+            ob,
             mx,
             my,
             dw,
@@ -122,6 +153,10 @@ async def compose_ar_tryon(
             height=height,
             output_format=output_format,
             flip_horizontal=flip_horizontal,
+            detect_scale_factor=detect_scale_factor,
+            detect_min_neighbors=detect_min_neighbors,
+            drop_factor=d_drop,
+            use_face_height=d_ufh,
         )
     except ValueError as e:
         if "No face detected" in str(e) and return_original_if_no_face:
@@ -161,20 +196,26 @@ async def compose_ar_tryon_json(
     height: int = Form(640),
     flip_horizontal: bool = Form(False),
     output_format: str = Form("png"),
+    detect_scale_factor: Optional[float] = Form(None),
+    detect_min_neighbors: Optional[int] = Form(None, ge=1, le=10),
+    drop_factor: float = Form(0.0, ge=0.0, le=0.6),
+    use_face_height: bool = Form(False),
 ) -> dict[str, Any]:
     """Same as /compose but returns JSON with base64 image."""
     image_bytes = await image.read()
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Empty image upload")
 
-    overlay_bgra, mx, my, dw, dh = await _resolve_overlay(
+    ob, mx, my, dw, dh, preset_drop, preset_ufh, use_form_placement = await _resolve_overlay(
         jewellery_id, overlay, margin_x, margin_y, scale_w, scale_h
     )
+    d_drop = drop_factor if use_form_placement else preset_drop
+    d_ufh = use_face_height if use_form_placement else preset_ufh
 
     try:
         out_bytes, meta = compose_from_bytes(
             image_bytes,
-            overlay_bgra,
+            ob,
             mx,
             my,
             dw,
@@ -183,6 +224,10 @@ async def compose_ar_tryon_json(
             height=height,
             output_format=output_format,
             flip_horizontal=flip_horizontal,
+            detect_scale_factor=detect_scale_factor,
+            detect_min_neighbors=detect_min_neighbors,
+            drop_factor=d_drop,
+            use_face_height=d_ufh,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e

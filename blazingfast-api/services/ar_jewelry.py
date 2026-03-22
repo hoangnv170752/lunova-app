@@ -54,6 +54,61 @@ def load_overlay_bgra(path: Path) -> np.ndarray:
     return img
 
 
+def _detect_face_haar(
+    gray: np.ndarray,
+    cascade: cv2.CascadeClassifier,
+    *,
+    scale_factor: Optional[float] = None,
+    min_neighbors: Optional[int] = None,
+) -> Optional[Tuple[int, int, int, int]]:
+    """
+    Run Haar frontal-face cascade (haarcascade_frontalface_default.xml).
+
+    OpenCV loads the XML once into CascadeClassifier; each call to detectMultiScale
+    scans the grayscale image at multiple scales and returns rectangles (x, y, w, h).
+
+    If scale_factor / min_neighbors are omitted, uses several passes from strict → loose
+    and returns the **largest** face (by area) found — reduces "no face" on webcams.
+    """
+    if scale_factor is not None and min_neighbors is not None:
+        faces = cascade.detectMultiScale(
+            gray,
+            scaleFactor=float(scale_factor),
+            minNeighbors=int(min_neighbors),
+            minSize=(30, 30),
+        )
+        if len(faces) == 0:
+            return None
+        return max(((int(x), int(y), int(w), int(h)) for (x, y, w, h) in faces), key=lambda r: r[2] * r[3])
+
+    passes: list[Tuple[float, int, Tuple[int, int]]] = [
+        (1.05, 4, (50, 50)),
+        (1.1, 3, (40, 40)),
+        (1.15, 2, (30, 30)),
+        (1.3, 2, (25, 25)),
+        (1.8, 3, (20, 20)),  # ARJewelBox-style
+    ]
+    best: Optional[Tuple[int, int, int, int]] = None
+    best_area = 0
+    for sf, mn, min_sz in passes:
+        faces = cascade.detectMultiScale(gray, scaleFactor=sf, minNeighbors=mn, minSize=min_sz)
+        for (x, y, w, h) in faces:
+            area = w * h
+            if area > best_area:
+                best_area = area
+                best = (int(x), int(y), int(w), int(h))
+    if best is not None:
+        return best
+
+    # Low light: try CLAHE on grayscale, then one sensitive pass
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    gray_eq = clahe.apply(gray)
+    faces = cascade.detectMultiScale(gray_eq, scaleFactor=1.05, minNeighbors=2, minSize=(25, 25))
+    if len(faces) == 0:
+        return None
+    return max(((int(x), int(y), int(w), int(h)) for (x, y, w, h) in faces), key=lambda r: r[2] * r[3])
+
+
 def overlay_bgra_on_frame(
     frame_bgra: np.ndarray,
     overlay_bgra: np.ndarray,
@@ -90,12 +145,18 @@ def apply_ar_jewelry_to_frame(
     width: int = DEFAULT_WIDTH,
     height: int = DEFAULT_HEIGHT,
     flip_horizontal: bool = False,
-    scale_factor: float = 1.8,
-    min_neighbors: int = 3,
-    use_first_face_if_multiple: bool = True,
+    detect_scale_factor: Optional[float] = None,
+    detect_min_neighbors: Optional[int] = None,
+    drop_factor: float = 0.0,
+    use_face_height: bool = False,
 ) -> Tuple[np.ndarray, dict[str, Any]]:
     """
-    Detect face, resize frame, overlay jewellery (ARJewelBox algorithm).
+    Detect face (Haar cascade XML), resize frame, overlay jewellery (ARJewelBox-style).
+
+    Model file: models/haarcascade_frontalface_default.xml (OpenCV Haar cascade).
+
+    drop_factor: push overlay down by drop_factor * face_height (necklaces).
+    use_face_height: if True, scale overlay using face height instead of width.
 
     Returns (output_bgra_or_bgr, meta) where meta has face_count, used_face_index.
     """
@@ -107,28 +168,31 @@ def apply_ar_jewelry_to_frame(
     frame_bgr = cv2.resize(frame_bgr, (width, height))
     gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
     cascade = get_cascade()
-    faces = cascade.detectMultiScale(gray, scaleFactor=scale_factor, minNeighbors=min_neighbors)
+    face = _detect_face_haar(
+        gray,
+        cascade,
+        scale_factor=detect_scale_factor,
+        min_neighbors=detect_min_neighbors,
+    )
 
-    meta["face_count"] = int(len(faces))
-    if len(faces) == 0:
-        # Return original resized frame as BGR (no overlay)
+    if face is None:
         return frame_bgr, meta
 
-    if len(faces) > 1 and not use_first_face_if_multiple:
-        return frame_bgr, meta
-
-    x, y, w, h = faces[0]
+    x, y, w, h = face
+    meta["face_count"] = 1
     meta["used_face_index"] = 0
 
     frame_bgra = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2BGRA)
-    fw, fh = int(w * dw), int(w * dh)
+    # ref: face width (rings) or face height (necklaces) × dw/dh
+    ref = float(h) if use_face_height else float(w)
+    fw, fh = int(ref * dw), int(ref * dh)
     if fw < 1 or fh < 1:
         return frame_bgra, meta
 
     new_impose = cv2.resize(overlay_bgra, (fw, fh))
-    # ARJewelBox: top-left at (x + mx, y + h + my)
+    # ARJewelBox + optional neck drop: top-left at (x + mx, y + h + my + drop*h)
     top_x = x + mx
-    top_y = y + h + my
+    top_y = int(y + h + my + drop_factor * h)
     overlay_bgra_on_frame(frame_bgra, new_impose, top_x, top_y)
     return frame_bgra, meta
 
@@ -145,6 +209,10 @@ def compose_from_bytes(
     height: int = DEFAULT_HEIGHT,
     output_format: str = "png",
     flip_horizontal: bool = False,
+    detect_scale_factor: Optional[float] = None,
+    detect_min_neighbors: Optional[int] = None,
+    drop_factor: float = 0.0,
+    use_face_height: bool = False,
 ) -> Tuple[bytes, dict[str, Any]]:
     """
     Decode image bytes, run AR overlay, encode to PNG or JPEG bytes.
@@ -166,6 +234,10 @@ def compose_from_bytes(
         width=width,
         height=height,
         flip_horizontal=flip_horizontal,
+        detect_scale_factor=detect_scale_factor,
+        detect_min_neighbors=detect_min_neighbors,
+        drop_factor=drop_factor,
+        use_face_height=use_face_height,
     )
 
     if meta["face_count"] == 0:
