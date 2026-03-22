@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { FaceDetector, FilesetResolver } from '@mediapipe/tasks-vision';
-import type { FaceBox } from '../lib/arOverlayGeometry';
+import type { FaceBox } from '../utils/arOverlayGeometry';
 
 const MP_VERSION = '0.10.14';
 const WASM_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;

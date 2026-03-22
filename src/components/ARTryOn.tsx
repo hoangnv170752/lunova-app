@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { composeArTryOnWithOverlay } from '../api/arTryOn';
-import { getJewelleryCatalog, type JewelleryCatalogItem } from '../lib/jewelleryCatalog';
-import { mapJewelleryOverlayStyle } from '../lib/arOverlayGeometry';
+import { getJewelleryCatalog, type JewelleryCatalogItem } from '../utils/jewelleryCatalog';
+import { mapJewelleryOverlayStyle } from '../utils/arOverlayGeometry';
 import { useRealtimeFaceDetection } from '../hooks/useRealtimeFaceDetection';
 
 type CameraStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'error';
