@@ -19,6 +19,11 @@ VITE_OPENWEATHER_KEY=your_openweather_api_key
 
 If you're using Supabase, update the `POSTGRES_URL` accordingly.
 
+### AR try-on (Haar face + jewellery overlay)
+
+- **Docs:** [docs/AR_TRYON_MODEL.md](./docs/AR_TRYON_MODEL.md) — how `haarcascade_frontalface_default.xml` is loaded and used.
+- **Endpoints:** `GET /ar-tryon/presets`, `POST /ar-tryon/compose` (multipart: `image`, optional `overlay` or `jewellery_id`).
+
 **If you get "could not translate host name ... supabase.co":**  
 Use the **connection pooler** URL from Supabase instead of the direct DB host. In Supabase: **Project Settings → Database → Connection string → URI**, then choose **Session** or **Transaction** (pooler). It uses a host like `aws-0-<region>.pooler.supabase.com` and port **6543**, which often resolves when the direct `db.*.supabase.co` host does not. Also ensure the project is not paused (free tier projects pause after inactivity).
 
