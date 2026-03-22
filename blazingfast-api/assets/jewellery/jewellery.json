@@ -1,0 +1,38 @@
+{
+  "jewel1": {
+    "path": "assets/jewellery/1.png",
+    "x": 0,
+    "y": 8,
+    "dw": 1.35,
+    "dh": 0.62,
+    "drop_factor": 0.2,
+    "use_face_height": true
+  },
+  "jewel2": {
+    "path": "assets/jewellery/2.png",
+    "x": -28,
+    "y": 4,
+    "dw": 1.55,
+    "dh": 1.05,
+    "drop_factor": 0.06,
+    "use_face_height": false
+  },
+  "jewel3": {
+    "path": "assets/jewellery/3.png",
+    "x": 0,
+    "y": 6,
+    "dw": 1.42,
+    "dh": 0.95,
+    "drop_factor": 0.12,
+    "use_face_height": true
+  },
+  "jewel4": {
+    "path": "assets/jewellery/4.png",
+    "x": 0,
+    "y": 4,
+    "dw": 1.5,
+    "dh": 1.05,
+    "drop_factor": 0.08,
+    "use_face_height": true
+  }
+}

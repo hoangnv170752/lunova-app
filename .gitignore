@@ -22,7 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
 
 # Python / FastAPI
 __pycache__/
@@ -60,3 +59,7 @@ htmlcov/
 blazingfast-api/.env
 .vercel
 blazingfast-api/venv
+temp_auto_push.bat
+temp_interactive_push.bat
+config.bat
+branch_structure.json
