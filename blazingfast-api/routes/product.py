@@ -47,7 +47,7 @@ class ProductResponse(ProductBase):
     shop_id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Routes
 @router.post("/", response_model=ProductResponse)

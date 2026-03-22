@@ -1,20 +1,28 @@
 /**
  * Lunova backend — AR jewelry try-on (OpenCV Haar + overlay).
- * Endpoints: GET /ar-tryon/presets, POST /ar-tryon/compose
+ * Endpoints: GET /ar-tryon/presets, POST /ar-tryon/compose, POST /ar-tryon/compose/json
  */
 
 const getBaseUrl = () => import.meta.env.VITE_BACKEND_URL || "https://lunova-api.onrender.com";
 
 export type ArJewelleryPreset = {
+  file: string;
+  name: string;
+  price: string;
+  color: string;
+  gem: string;
   x: number;
   y: number;
   dw: number;
   dh: number;
+  drop_factor: number;
+  use_face_height: boolean;
 };
 
 export type ArTryOnPresetsResponse = {
   presets: Record<string, ArJewelleryPreset>;
   config_path: string;
+  detector: string;
 };
 
 export async function fetchArTryOnPresets(): Promise<ArTryOnPresetsResponse> {
@@ -46,16 +54,82 @@ export type OverlayParams = {
   use_face_height?: boolean;
 };
 
+export type ArComposeFaceBox = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+export type ArComposeMeta = {
+  detector: string;
+  face_count: number;
+  used_face_index: number | null;
+  face_box: ArComposeFaceBox | null;
+  no_face_detected: boolean;
+  detection_reason: string | null;
+  output_width: number;
+  output_height: number;
+  output_format: string;
+  returned_original: boolean;
+  selected_jewellery_id: string | null;
+  used_custom_overlay: boolean;
+  flip_horizontal: boolean;
+  placement: {
+    x: number;
+    y: number;
+    dw: number;
+    dh: number;
+    drop_factor: number;
+    use_face_height: boolean;
+  };
+};
+
+type ComposeArTryOnJsonResponse = {
+  image_base64: string;
+  mime_type: string;
+  meta: ArComposeMeta;
+};
+
+function base64ToBlob(base64: string, mimeType: string): Blob {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mimeType });
+}
+
+async function parseComposeJsonResponse(res: Response): Promise<{ blob: Blob; meta: ArComposeMeta }> {
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      if (body?.detail) {
+        detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
+      }
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+
+  const body = (await res.json()) as ComposeArTryOnJsonResponse;
+  return {
+    blob: base64ToBlob(body.image_base64, body.mime_type),
+    meta: body.meta,
+  };
+}
+
 /**
- * Same as /ar-tryon/compose but sends overlay PNG from the client (e.g. src/assets/jewellery).
- * Backend uses margin_x, margin_y, scale_w, scale_h from your local config.
+ * Debug/custom-overlay compose path. Built-in items should use composeArTryOn with jewellery_id.
  */
 export async function composeArTryOnWithOverlay(
   imageBlob: Blob,
   overlayBlob: Blob,
   overlayParams: OverlayParams,
   options: ComposeArTryOnOptions = {}
-): Promise<{ blob: Blob; faceCount: string | null }> {
+): Promise<{ blob: Blob; meta: ArComposeMeta }> {
   const base = getBaseUrl().replace(/\/$/, '');
   const form = new FormData();
   form.append('image', imageBlob, 'capture.jpg');
@@ -72,37 +146,22 @@ export async function composeArTryOnWithOverlay(
   form.append('height', String(options.height ?? 640));
   form.append('output_format', options.output_format ?? 'png');
 
-  const res = await fetch(`${base}/ar-tryon/compose`, {
+  const res = await fetch(`${base}/ar-tryon/compose/json`, {
     method: 'POST',
     body: form,
   });
 
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const body = await res.json();
-      if (body?.detail) {
-        detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
-      }
-    } catch {
-      /* ignore */
-    }
-    throw new Error(detail);
-  }
-
-  const blob = await res.blob();
-  const faceCount = res.headers.get('X-AR-Face-Count');
-  return { blob, faceCount };
+  return parseComposeJsonResponse(res);
 }
 
 /**
- * Send a photo and preset id; returns composed image blob (PNG or JPEG).
+ * Built-in compose path using backend-managed jewellery presets and debug metadata.
  */
 export async function composeArTryOn(
   imageBlob: Blob,
   jewelleryId: string,
   options: ComposeArTryOnOptions = {}
-): Promise<{ blob: Blob; faceCount: string | null }> {
+): Promise<{ blob: Blob; meta: ArComposeMeta }> {
   const base = getBaseUrl().replace(/\/$/, '');
   const form = new FormData();
   form.append('image', imageBlob, 'capture.jpg');
@@ -113,25 +172,10 @@ export async function composeArTryOn(
   form.append('height', String(options.height ?? 640));
   form.append('output_format', options.output_format ?? 'png');
 
-  const res = await fetch(`${base}/ar-tryon/compose`, {
+  const res = await fetch(`${base}/ar-tryon/compose/json`, {
     method: 'POST',
     body: form,
   });
 
-  if (!res.ok) {
-    let detail = res.statusText;
-    try {
-      const body = await res.json();
-      if (body?.detail) {
-        detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
-      }
-    } catch {
-      /* ignore */
-    }
-    throw new Error(detail);
-  }
-
-  const blob = await res.blob();
-  const faceCount = res.headers.get('X-AR-Face-Count');
-  return { blob, faceCount };
+  return parseComposeJsonResponse(res);
 }

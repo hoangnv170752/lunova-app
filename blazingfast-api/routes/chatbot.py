@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
+from functools import lru_cache
+from pathlib import Path
 import os
 import openai
 import json
@@ -14,6 +16,7 @@ from models.product import Product
 
 # Load environment variables
 load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 # Initialize OpenAI client
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -50,10 +53,14 @@ class ChatResponse(BaseModel):
     suggested_shops: List[Dict[str, Any]] = []
     detected_language: Optional[str] = None
 
-# OpenAI client is initialized above
-
-# Initialize Qdrant service
-qdrant_service = QdrantService()
+# Cache the QdrantService instance to avoid reinitializing it on every request
+@lru_cache(maxsize=1)
+def get_qdrant_service() -> Optional[QdrantService]:
+    try:
+        return QdrantService()
+    except ValueError as exc:
+        print(f"Qdrant service disabled: {exc}")
+        return None
 
 SYSTEM_PROMPT = """
 You are Lunova's virtual shop assistant, helping customers find products and shops that match their needs.
@@ -84,7 +91,8 @@ async def chat(
     response_text = "I'm sorry, I couldn't process your request at this time. Please try again later."
     
     try:
-        # Step 1: Use OpenAI to understand the user's query and extract search parameters
+        # Step 1: Analyze the customer's message with OpenAI to extract search parameters
+        qdrant_service = get_qdrant_service()
         try:
             completion = openai.ChatCompletion.create(
                 model="gpt-4o",
@@ -158,7 +166,7 @@ async def chat(
                                    product_search.get("features", []))
         
         suggested_products_with_images = []
-        if product_keywords:
+        if product_keywords and qdrant_service is not None:
             try:
                 # Search in products collection
                 product_results = qdrant_service.search_similar(
@@ -209,7 +217,7 @@ async def chat(
                                 shop_search.get("features", []))
         
         suggested_shops = []
-        if shop_keywords:
+        if shop_keywords and qdrant_service is not None:
             # Search in shops collection
             shop_results = qdrant_service.search_similar(
                 collection_name="shops",

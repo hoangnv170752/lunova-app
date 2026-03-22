@@ -12,15 +12,17 @@ import {
   Wand2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { composeArTryOnWithOverlay } from '../api/arTryOn';
-import { getJewelleryCatalog, type JewelleryCatalogItem } from '../utils/jewelleryCatalog';
+import { composeArTryOn, fetchArTryOnPresets, type ArComposeMeta } from '../api/arTryOn';
+import { buildJewelleryCatalog, type JewelleryCatalogItem } from '../utils/jewelleryCatalog';
 import { mapJewelleryOverlayStyle } from '../utils/arOverlayGeometry';
 import { useRealtimeFaceDetection } from '../hooks/useRealtimeFaceDetection';
 
 type CameraStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'error';
 
 const ARTryOn: React.FC = () => {
-  const catalog = useMemo(() => getJewelleryCatalog(), []);
+  const [catalog, setCatalog] = useState<JewelleryCatalogItem[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [selectedJewelId, setSelectedJewelId] = useState<string>(() => catalog[0]?.id ?? '');
 
   const selectedItem: JewelleryCatalogItem | undefined = useMemo(
@@ -34,12 +36,39 @@ const ARTryOn: React.FC = () => {
     }
   }, [catalog, selectedJewelId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setCatalogLoading(true);
+    setCatalogError(null);
+
+    fetchArTryOnPresets()
+      .then((response) => {
+        if (cancelled) return;
+        setCatalog(buildJewelleryCatalog(response.presets));
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setCatalog([]);
+        setCatalogError(error instanceof Error ? error.message : 'Could not load jewellery presets');
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCatalogLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [arLoading, setArLoading] = useState(false);
   const [arError, setArError] = useState<string | null>(null);
+  const [arNotice, setArNotice] = useState<string | null>(null);
   const [arResultUrl, setArResultUrl] = useState<string | null>(null);
-  const [lastFaceCount, setLastFaceCount] = useState<string | null>(null);
+  const [lastComposeMeta, setLastComposeMeta] = useState<ArComposeMeta | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -131,18 +160,19 @@ const ARTryOn: React.FC = () => {
         return;
       }
       ctx.drawImage(v, 0, 0);
-      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.92);
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95);
     });
   }, [cameraStatus]);
 
   const handleApplyServerAr = useCallback(async () => {
     const item = selectedItem;
     if (!item) {
-      setArError('No jewellery loaded from src/assets/jewellery');
+      setArError('No jewellery preset is available for AR rendering.');
       return;
     }
     setArError(null);
-    setLastFaceCount(null);
+    setArNotice(null);
+    setLastComposeMeta(null);
     const blob = await captureFrameBlob();
     if (!blob) {
       setArError('Could not capture frame. Is the camera on?');
@@ -151,26 +181,18 @@ const ARTryOn: React.FC = () => {
     setArLoading(true);
     try {
       if (arResultUrl) URL.revokeObjectURL(arResultUrl);
-      const overlayRes = await fetch(item.imageUrl);
-      if (!overlayRes.ok) throw new Error('Could not load overlay image from assets');
-      const overlayBlob = await overlayRes.blob();
-      const { blob: out, faceCount } = await composeArTryOnWithOverlay(
+      const { blob: out, meta } = await composeArTryOn(
         blob,
-        overlayBlob,
-        {
-          margin_x: item.x,
-          margin_y: item.y,
-          scale_w: item.dw,
-          scale_h: item.dh,
-          drop_factor: item.drop_factor ?? 0,
-          use_face_height: item.use_face_height ?? false,
-        },
-        { flip_horizontal: true, return_original_if_no_face: false }
+        item.id,
+        { flip_horizontal: true, return_original_if_no_face: true }
       );
+      setLastComposeMeta(meta);
       setArResultUrl(URL.createObjectURL(out));
-      setLastFaceCount(faceCount);
+      if (meta.no_face_detected) {
+        setArNotice('No face was detected in the captured frame, so the original snapshot was returned. Try facing the camera directly with better light.');
+      }
     } catch (e) {
-      setArError(e instanceof Error ? e.message : 'AR processing failed');
+      setArError(e instanceof Error ? e.message : 'Final AR rendering failed');
     } finally {
       setArLoading(false);
     }
@@ -180,7 +202,7 @@ const ARTryOn: React.FC = () => {
     if (arResultUrl) {
       const a = document.createElement('a');
       a.href = arResultUrl;
-      a.download = `lunova-ar-${selectedItem?.id ?? 'jewel'}.png`;
+      a.download = `lunova-final-${selectedItem?.id ?? 'jewel'}.png`;
       a.click();
       return;
     }
@@ -238,11 +260,9 @@ const ARTryOn: React.FC = () => {
             Try On <span className="text-yellow-400">Virtually</span>
           </h1>
           <p className="text-gray-400">
-            <strong className="text-gray-300">Realtime</strong> uses MediaPipe BlazeFace in your browser.{' '}
-            <strong className="text-gray-300">Apply AR (server)</strong> uses the same placement math for a
-            high-res snapshot. Assets:{' '}
-            <code className="text-yellow-400/90 text-xs">src/assets/jewellery</code> +{' '}
-            <code className="text-yellow-400/90 text-xs">jewellery.json</code>.
+            <strong className="text-gray-300">Approximate preview</strong> uses MediaPipe in your browser.{' '}
+            <strong className="text-gray-300">Final result</strong> uses the backend Haar detector and is the
+            authoritative render for face and neck jewellery placement.
           </p>
           <label className="inline-flex items-center gap-2 mt-3 text-sm text-gray-400 cursor-pointer select-none">
             <input
@@ -251,7 +271,7 @@ const ARTryOn: React.FC = () => {
               checked={realtimeOn}
               onChange={(e) => setRealtimeOn(e.target.checked)}
             />
-            Realtime face tracking (MediaPipe)
+            Approximate realtime preview (MediaPipe)
             {!faceDetectorReady && realtimeOn && cameraStatus === 'active' && (
               <Loader2 className="h-4 w-4 animate-spin text-yellow-400" />
             )}
@@ -259,9 +279,15 @@ const ARTryOn: React.FC = () => {
           {faceDetectorError && (
             <p className="text-amber-400 text-sm mt-1">Face model: {faceDetectorError}</p>
           )}
-          {catalog.length === 0 && (
+          {catalogLoading && (
+            <p className="text-gray-500 text-sm mt-2">Loading jewellery presets from the API…</p>
+          )}
+          {catalogError && (
+            <p className="text-amber-400 text-sm mt-2">Preset API: {catalogError}</p>
+          )}
+          {!catalogLoading && !catalogError && catalog.length === 0 && (
             <p className="text-amber-400 text-sm mt-2">
-              No jewellery found. Add PNG files under src/assets/jewellery and entries in jewellery.json.
+              No jewellery presets could be rendered. Check `/ar-tryon/presets` and local preview assets.
             </p>
           )}
         </div>
@@ -274,9 +300,8 @@ const ARTryOn: React.FC = () => {
                 autoPlay
                 playsInline
                 muted
-                className={`absolute inset-0 w-full h-full object-contain bg-black scale-x-[-1] ${
-                  cameraStatus === 'active' ? 'block' : 'hidden'
-                }`}
+                className={`absolute inset-0 w-full h-full object-contain bg-black scale-x-[-1] ${cameraStatus === 'active' ? 'block' : 'hidden'
+                  }`}
               />
 
               {cameraStatus === 'active' &&
@@ -286,7 +311,7 @@ const ARTryOn: React.FC = () => {
                 videoRef.current && (
                   <img
                     src={selectedItem.imageUrl}
-                    alt=""
+                    alt={`${selectedItem.name} approximate preview`}
                     className="object-contain drop-shadow-[0_0_12px_rgba(0,0,0,0.8)]"
                     style={mapJewelleryOverlayStyle(
                       videoRef.current,
@@ -304,6 +329,12 @@ const ARTryOn: React.FC = () => {
                   />
                 )}
 
+              {cameraStatus === 'active' && realtimeOn && selectedItem?.imageUrl && (
+                <div className="absolute top-4 right-4 z-20 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-200">
+                  Approximate preview
+                </div>
+              )}
+
               {cameraStatus === 'active' && selectedItem?.imageUrl && (
                 <div className="absolute bottom-4 right-4 flex flex-wrap gap-2 justify-end z-20">
                   <button
@@ -317,9 +348,9 @@ const ARTryOn: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleApplyServerAr}
-                    disabled={arLoading || !catalog.length}
+                    disabled={arLoading || !catalog.length || catalogLoading}
                     className="p-2 bg-violet-500/90 rounded-full hover:bg-violet-400 transition-colors disabled:opacity-50"
-                    title="Apply server AR (face + jewellery)"
+                    title="Render final jewellery try-on"
                   >
                     {arLoading ? (
                       <Loader2 className="h-5 w-5 text-white animate-spin" />
@@ -331,7 +362,7 @@ const ARTryOn: React.FC = () => {
                     type="button"
                     onClick={handleDownload}
                     className="p-2 bg-yellow-400/90 rounded-full hover:bg-yellow-300 transition-colors"
-                    title={arResultUrl ? 'Download AR result' : 'Save camera snapshot'}
+                    title={arResultUrl ? 'Download final result' : 'Save camera snapshot'}
                   >
                     <Download className="h-5 w-5 text-black" />
                   </button>
@@ -358,7 +389,7 @@ const ARTryOn: React.FC = () => {
                   </div>
                   <div className="text-center">
                     <p className="text-white font-medium mb-1">Enable Camera</p>
-                    <p className="text-gray-500 text-sm">Allow camera access to try on jewelry</p>
+                    <p className="text-gray-500 text-sm">Allow camera access to preview face and neck jewellery</p>
                   </div>
                   <button
                     type="button"
@@ -411,6 +442,12 @@ const ARTryOn: React.FC = () => {
               )}
             </div>
 
+            {arNotice && (
+              <div className="rounded-xl border border-amber-700/60 bg-amber-950/40 px-4 py-3 text-sm text-amber-200">
+                {arNotice}
+              </div>
+            )}
+
             {arError && (
               <div className="rounded-xl border border-red-800/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">
                 {arError}
@@ -420,17 +457,36 @@ const ARTryOn: React.FC = () => {
             {arResultUrl && (
               <div className="rounded-2xl border border-gray-800 bg-gray-900/80 overflow-hidden">
                 <div className="px-4 py-2 border-b border-gray-800 flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-200">AR result (API)</span>
-                  {lastFaceCount != null && (
-                    <span className="text-xs text-gray-500">Faces detected: {lastFaceCount}</span>
+                  <span className="text-sm font-medium text-gray-200">Final result (backend)</span>
+                  {lastComposeMeta && (
+                    <span className="text-xs text-gray-500">
+                      Detector: {lastComposeMeta.detector.toUpperCase()} · Faces detected: {lastComposeMeta.face_count}
+                    </span>
                   )}
                 </div>
-                <img src={arResultUrl} alt="AR try-on result" className="w-full max-h-[480px] object-contain bg-black" />
+                <img src={arResultUrl} alt="Final AR try-on result" className="w-full max-h-[480px] object-contain bg-black" />
+                {lastComposeMeta && (
+                  <div className="grid gap-3 border-t border-gray-800 px-4 py-3 text-xs text-gray-400 md:grid-cols-3">
+                    <div>
+                      Output: {lastComposeMeta.output_width}×{lastComposeMeta.output_height} · {lastComposeMeta.output_format.toUpperCase()}
+                    </div>
+                    <div>
+                      Placement: x {lastComposeMeta.placement.x}, y {lastComposeMeta.placement.y}, dw {lastComposeMeta.placement.dw}, dh {lastComposeMeta.placement.dh}
+                    </div>
+                    <div>
+                      {lastComposeMeta.no_face_detected
+                        ? `Fallback: ${lastComposeMeta.detection_reason ?? 'No face detected'}`
+                        : lastComposeMeta.face_box
+                          ? `Face box: ${lastComposeMeta.face_box.w}×${lastComposeMeta.face_box.h}`
+                          : 'Face metadata unavailable'}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             <div className="grid grid-cols-3 gap-3">
-              {['Face the camera directly', 'One face in frame works best', 'Good lighting helps detection'].map(
+              {['Face the camera directly', 'One face in frame works best', 'Necklaces sit best with visible neck and good light'].map(
                 (tip) => (
                   <div key={tip} className="bg-gray-900 rounded-xl px-3 py-2 border border-gray-800 text-center">
                     <p className="text-gray-400 text-xs">{tip}</p>
@@ -441,7 +497,7 @@ const ARTryOn: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-200">Choose a ring</h2>
+            <h2 className="text-lg font-semibold text-gray-200">Choose jewellery</h2>
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
               {catalog.map((item) => {
                 const selected = selectedJewelId === item.id;
@@ -450,11 +506,10 @@ const ARTryOn: React.FC = () => {
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedJewelId(item.id)}
-                    className={`w-full flex items-center space-x-4 p-4 rounded-xl border transition-all text-left ${
-                      selected
+                    className={`w-full flex items-center space-x-4 p-4 rounded-xl border transition-all text-left ${selected
                         ? 'border-yellow-400 bg-yellow-400/10'
                         : 'border-gray-800 bg-gray-900 hover:border-gray-700'
-                    }`}
+                      }`}
                   >
                     <div className="relative flex-shrink-0 w-14 h-14 rounded-lg bg-black/40 border border-gray-700 flex items-center justify-center overflow-hidden">
                       <img src={item.imageUrl} alt="" className="max-w-full max-h-full object-contain" />
@@ -482,12 +537,12 @@ const ARTryOn: React.FC = () => {
               </button>
               <button
                 type="button"
-                disabled={cameraStatus !== 'active' || arLoading || !catalog.length}
+                disabled={cameraStatus !== 'active' || arLoading || !catalog.length || catalogLoading}
                 onClick={handleApplyServerAr}
                 className="w-full bg-violet-500 text-white py-2.5 rounded-lg font-semibold hover:bg-violet-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {arLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wand2 className="h-5 w-5" />}
-                Apply AR (server)
+                Render final try-on
               </button>
             </div>
           </div>

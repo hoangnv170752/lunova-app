@@ -7,11 +7,13 @@ from sqlalchemy import inspect
 import json
 import hashlib
 import numpy as np
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Type
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 # Load environment variables
 load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 class QdrantService:
     def __init__(self):

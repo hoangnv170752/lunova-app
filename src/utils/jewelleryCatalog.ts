@@ -1,9 +1,8 @@
 /**
- * Jewellery list for AR try-on: images from src/assets/jewellery/*.png
- * + metadata from src/assets/configs/jewellery.json
+ * Jewellery list for AR try-on: backend presets + local preview assets from src/assets/jewellery/*.png
  */
 
-import jewelleryConfig from '../assets/configs/jewellery.json';
+import type { ArJewelleryPreset } from '../api/arTryOn';
 
 /** Vite resolves each PNG to a public URL */
 const jewelImageModules = import.meta.glob<string>('../assets/jewellery/*.png', {
@@ -11,46 +10,30 @@ const jewelImageModules = import.meta.glob<string>('../assets/jewellery/*.png', 
   import: 'default',
 });
 
-type JsonRow = {
-  file: string;
-  path: string;
-  name: string;
-  price: string;
-  color: string;
-  gem: string;
-  x: number;
-  y: number;
-  dw: number;
-  dh: number;
-  /** Fraction of face height to push overlay down (necklace on neck). */
-  drop_factor?: number;
-  /** Scale dw/dh against face height instead of width. */
-  use_face_height?: boolean;
-};
-
-export type JewelleryCatalogItem = JsonRow & {
+export type JewelleryCatalogItem = ArJewelleryPreset & {
   id: string;
   imageUrl: string;
 };
 
 function resolveImageUrl(file: string): string | undefined {
-  const entry = Object.entries(jewelImageModules).find(([key]) => key.endsWith(`/${file}`));
+  const entry = Object.entries(jewelImageModules).find(([key]) => {
+    const keyFile = key.split('/').pop();
+    return keyFile === file;
+  });
   return entry?.[1];
 }
 
 /**
- * Ordered list: only entries whose `file` exists under src/assets/jewellery/
+ * Ordered list using backend presets. Only entries whose `file` exists locally are returned.
  */
-export function getJewelleryCatalog(): JewelleryCatalogItem[] {
-  const config = jewelleryConfig as Record<string, JsonRow>;
+export function buildJewelleryCatalog(presets: Record<string, ArJewelleryPreset>): JewelleryCatalogItem[] {
   const items: JewelleryCatalogItem[] = [];
 
-  for (const id of Object.keys(config).sort()) {
-    const row = config[id];
-    const file = row.file || row.path.split('/').pop() || '';
-    const imageUrl = resolveImageUrl(file);
+  for (const id of Object.keys(presets).sort()) {
+    const row = presets[id];
+    const imageUrl = resolveImageUrl(row.file);
     if (!imageUrl) continue;
-    items.push({ id, ...row, file, imageUrl });
+    items.push({ id, ...row, imageUrl });
   }
 
   return items;

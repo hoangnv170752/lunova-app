@@ -41,7 +41,7 @@ class ProductImageResponse(ProductImageBase):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Helper function to get Supabase storage URL
 def get_storage_url(path: str) -> str:

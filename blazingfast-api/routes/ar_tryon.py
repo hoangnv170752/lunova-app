@@ -5,7 +5,7 @@ AR jewelry try-on endpoints (OpenCV Haar cascade + overlay PNG).
 from __future__ import annotations
 
 import base64
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -13,11 +13,13 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
 
 from services.ar_jewelry import (
+    DETECTOR_NAME,
     JEWELLERY_JSON,
     compose_from_bytes,
     load_jewellery_presets,
     load_overlay_bgra,
     resolve_jewellery_path,
+    serialize_preset_for_api,
 )
 
 router = APIRouter(prefix="/ar-tryon", tags=["ar-tryon"])
@@ -30,12 +32,11 @@ async def _resolve_overlay(
     margin_y: Optional[int],
     scale_w: Optional[float],
     scale_h: Optional[float],
-) -> Tuple[np.ndarray, int, int, float, float, float, bool, bool]:
+) -> dict[str, Any]:
     """
-    Returns overlay_bgra, mx, my, dw, dh, drop_factor, use_face_height, use_form_placement.
+    Resolve either a built-in preset or a custom overlay upload.
 
-    If overlay file uploaded, drop_factor/use_face_height placeholders; caller uses Form values.
-    If server preset, drop_factor/use_face_height come from jewellery.json.
+    The returned dict contains overlay_bgra, placement, selected_jewellery_id, and used_custom_overlay.
     """
     if overlay is not None and overlay.filename:
         obytes = await overlay.read()
@@ -50,7 +51,19 @@ async def _resolve_overlay(
         my = int(margin_y if margin_y is not None else 0)
         dw = float(scale_w if scale_w is not None else 1.0)
         dh = float(scale_h if scale_h is not None else 1.0)
-        return overlay_bgra, mx, my, dw, dh, 0.0, False, True
+        return {
+            "overlay_bgra": overlay_bgra,
+            "placement": {
+                "x": mx,
+                "y": my,
+                "dw": dw,
+                "dh": dh,
+                "drop_factor": 0.0,
+                "use_face_height": False,
+            },
+            "selected_jewellery_id": None,
+            "used_custom_overlay": True,
+        }
 
     presets = load_jewellery_presets()
     jid = jewellery_id or (next(iter(presets.keys())) if presets else None)
@@ -68,24 +81,59 @@ async def _resolve_overlay(
     dh = float(scale_h if scale_h is not None else cfg.get("dh", 1.0))
     drop = float(cfg.get("drop_factor", 0) or 0)
     ufh = bool(cfg.get("use_face_height", False))
-    return overlay_bgra, mx, my, dw, dh, drop, ufh, False
+    return {
+        "overlay_bgra": overlay_bgra,
+        "placement": {
+            "x": mx,
+            "y": my,
+            "dw": dw,
+            "dh": dh,
+            "drop_factor": drop,
+            "use_face_height": ufh,
+        },
+        "selected_jewellery_id": jid,
+        "used_custom_overlay": False,
+    }
+
+
+def _finalize_meta(
+    meta: dict[str, Any],
+    *,
+    selected_jewellery_id: Optional[str],
+    used_custom_overlay: bool,
+    placement: dict[str, Any],
+    flip_horizontal: bool,
+) -> dict[str, Any]:
+    meta["selected_jewellery_id"] = selected_jewellery_id
+    meta["used_custom_overlay"] = used_custom_overlay
+    meta["placement"] = placement
+    meta["flip_horizontal"] = flip_horizontal
+    return meta
+
+
+def _build_response_headers(meta: dict[str, Any]) -> dict[str, str]:
+    return {
+        "X-AR-Face-Count": str(meta.get("face_count", "")),
+        "X-AR-Used-Face-Index": "" if meta.get("used_face_index") is None else str(meta["used_face_index"]),
+        "X-AR-Detector": str(meta.get("detector", DETECTOR_NAME)),
+        "X-AR-No-Face": str(bool(meta.get("no_face_detected", False))).lower(),
+        "X-AR-Returned-Original": str(bool(meta.get("returned_original", False))).lower(),
+        "X-AR-Detection-Reason": str(meta.get("detection_reason") or ""),
+        "X-AR-Selected-Jewellery-Id": str(meta.get("selected_jewellery_id") or ""),
+        "X-AR-Used-Custom-Overlay": str(bool(meta.get("used_custom_overlay", False))).lower(),
+        "X-AR-Output-Width": str(meta.get("output_width", "")),
+        "X-AR-Output-Height": str(meta.get("output_height", "")),
+    }
 
 
 @router.get("/presets")
 def list_jewellery_presets() -> dict[str, Any]:
-    """List built-in jewellery keys and their margin/scale parameters (no file paths in response)."""
+    """List built-in jewellery presets and display metadata without exposing backend file paths."""
     raw = load_jewellery_presets()
     out: dict[str, dict[str, Any]] = {}
     for key, cfg in raw.items():
-        out[key] = {
-            "x": cfg.get("x", 0),
-            "y": cfg.get("y", 0),
-            "dw": cfg.get("dw", 1.0),
-            "dh": cfg.get("dh", 1.0),
-            "drop_factor": cfg.get("drop_factor", 0.0),
-            "use_face_height": cfg.get("use_face_height", False),
-        }
-    return {"presets": out, "config_path": str(JEWELLERY_JSON)}
+        out[key] = serialize_preset_for_api(cfg)
+    return {"presets": out, "config_path": str(JEWELLERY_JSON), "detector": DETECTOR_NAME}
 
 
 @router.post("/compose")
@@ -135,20 +183,23 @@ async def compose_ar_tryon(
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Empty image upload")
 
-    ob, mx, my, dw, dh, preset_drop, preset_ufh, use_form_placement = await _resolve_overlay(
+    overlay_config = await _resolve_overlay(
         jewellery_id, overlay, margin_x, margin_y, scale_w, scale_h
     )
-    d_drop = drop_factor if use_form_placement else preset_drop
-    d_ufh = use_face_height if use_form_placement else preset_ufh
+    placement = overlay_config["placement"]
+    d_drop = drop_factor if overlay_config["used_custom_overlay"] else float(placement["drop_factor"])
+    d_ufh = use_face_height if overlay_config["used_custom_overlay"] else bool(placement["use_face_height"])
+    placement["drop_factor"] = d_drop
+    placement["use_face_height"] = d_ufh
 
     try:
         out_bytes, meta = compose_from_bytes(
             image_bytes,
-            ob,
-            mx,
-            my,
-            dw,
-            dh,
+            overlay_config["overlay_bgra"],
+            placement["x"],
+            placement["y"],
+            placement["dw"],
+            placement["dh"],
             width=width,
             height=height,
             output_format=output_format,
@@ -157,29 +208,22 @@ async def compose_ar_tryon(
             detect_min_neighbors=detect_min_neighbors,
             drop_factor=d_drop,
             use_face_height=d_ufh,
+            allow_no_face=return_original_if_no_face,
         )
     except ValueError as e:
-        if "No face detected" in str(e) and return_original_if_no_face:
-            arr = np.frombuffer(image_bytes, dtype=np.uint8)
-            frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-            if frame is None:
-                raise HTTPException(status_code=400, detail="Could not decode input image") from e
-            frame = cv2.resize(frame, (width, height))
-            ext = ".png" if output_format.lower() == "png" else ".jpg"
-            ok, buf = cv2.imencode(ext, frame)
-            if not ok:
-                raise HTTPException(status_code=500, detail="Encode failed") from e
-            media = "image/png" if ext == ".png" else "image/jpeg"
-            return Response(content=buf.tobytes(), media_type=media)
         raise HTTPException(status_code=422, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+    meta = _finalize_meta(
+        meta,
+        selected_jewellery_id=overlay_config["selected_jewellery_id"],
+        used_custom_overlay=overlay_config["used_custom_overlay"],
+        placement=placement,
+        flip_horizontal=flip_horizontal,
+    )
     media = "image/png" if output_format.lower() == "png" else "image/jpeg"
-    headers = {
-        "X-AR-Face-Count": str(meta.get("face_count", "")),
-        "X-AR-Used-Face-Index": str(meta.get("used_face_index", "")),
-    }
+    headers = _build_response_headers(meta)
     return Response(content=out_bytes, media_type=media, headers=headers)
 
 
@@ -196,6 +240,7 @@ async def compose_ar_tryon_json(
     height: int = Form(640),
     flip_horizontal: bool = Form(False),
     output_format: str = Form("png"),
+    return_original_if_no_face: bool = Form(False),
     detect_scale_factor: Optional[float] = Form(None),
     detect_min_neighbors: Optional[int] = Form(None, ge=1, le=10),
     drop_factor: float = Form(0.0, ge=0.0, le=0.6),
@@ -206,20 +251,23 @@ async def compose_ar_tryon_json(
     if not image_bytes:
         raise HTTPException(status_code=400, detail="Empty image upload")
 
-    ob, mx, my, dw, dh, preset_drop, preset_ufh, use_form_placement = await _resolve_overlay(
+    overlay_config = await _resolve_overlay(
         jewellery_id, overlay, margin_x, margin_y, scale_w, scale_h
     )
-    d_drop = drop_factor if use_form_placement else preset_drop
-    d_ufh = use_face_height if use_form_placement else preset_ufh
+    placement = overlay_config["placement"]
+    d_drop = drop_factor if overlay_config["used_custom_overlay"] else float(placement["drop_factor"])
+    d_ufh = use_face_height if overlay_config["used_custom_overlay"] else bool(placement["use_face_height"])
+    placement["drop_factor"] = d_drop
+    placement["use_face_height"] = d_ufh
 
     try:
         out_bytes, meta = compose_from_bytes(
             image_bytes,
-            ob,
-            mx,
-            my,
-            dw,
-            dh,
+            overlay_config["overlay_bgra"],
+            placement["x"],
+            placement["y"],
+            placement["dw"],
+            placement["dh"],
             width=width,
             height=height,
             output_format=output_format,
@@ -228,10 +276,20 @@ async def compose_ar_tryon_json(
             detect_min_neighbors=detect_min_neighbors,
             drop_factor=d_drop,
             use_face_height=d_ufh,
+            allow_no_face=return_original_if_no_face,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
+    meta = _finalize_meta(
+        meta,
+        selected_jewellery_id=overlay_config["selected_jewellery_id"],
+        used_custom_overlay=overlay_config["used_custom_overlay"],
+        placement=placement,
+        flip_horizontal=flip_horizontal,
+    )
     mime = "image/png" if output_format.lower() == "png" else "image/jpeg"
     return {
         "image_base64": base64.b64encode(out_bytes).decode("ascii"),
