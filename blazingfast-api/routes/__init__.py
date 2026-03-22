@@ -8,3 +8,4 @@ from .market_insights import router as market_insights_router
 from .ticket import router as ticket_router
 from .ticket_response import router as ticket_response_router
 from .chatbot import router as chatbot_router
+from .ar_tryon import router as ar_tryon_router

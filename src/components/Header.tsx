@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Gem, ShoppingBag, User, LogIn, ChevronDown } from 'lucide-react';
+import { Menu, X, Gem, ShoppingBag, User, LogIn, ChevronDown, Sparkles } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
@@ -39,6 +39,13 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
             <a href="#pricing" className="text-gray-300 hover:text-yellow-400 transition-colors">{t('nav.pricing')}</a>
             <a href="#testimonials" className="text-gray-300 hover:text-yellow-400 transition-colors">{t('nav.reviews')}</a>
             <a href="#contact" className="text-gray-300 hover:text-yellow-400 transition-colors">{t('nav.contact')}</a>
+            <Link
+              to="/ar-try-on"
+              className="flex items-center space-x-1.5 bg-yellow-400/10 border border-yellow-400/40 text-yellow-400 px-3 py-1.5 rounded-lg hover:bg-yellow-400/20 transition-colors text-sm font-medium"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>AR Try On</span>
+            </Link>
           </nav>
           
           <div className="flex items-center space-x-4">
@@ -108,7 +115,14 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, setIsMenuOpen }) => {
               <a href="#pricing" className="text-gray-300 hover:text-yellow-400 transition-colors">{t('nav.pricing')}</a>
               <a href="#testimonials" className="text-gray-300 hover:text-yellow-400 transition-colors">{t('nav.reviews')}</a>
               <a href="#contact" className="text-gray-300 hover:text-yellow-400 transition-colors">{t('nav.contact')}</a>
-              
+              <Link
+                to="/ar-try-on"
+                className="flex items-center space-x-2 text-yellow-400 hover:text-yellow-300 transition-colors"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>AR Try On</span>
+              </Link>
+
               <button 
                 onClick={() => setIsProductSuggestionModalOpen(true)}
                 className="flex items-center space-x-2 bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-300 transition-colors"
