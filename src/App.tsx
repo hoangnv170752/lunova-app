@@ -19,6 +19,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import MobileWarning from './components/MobileWarning';
+import ARTryOn from './components/ARTryOn';
 
 const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -161,6 +162,7 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           } 
         />
+        <Route path="/ar-try-on" element={<ARTryOn />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

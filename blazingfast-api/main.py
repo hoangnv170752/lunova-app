@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 
 from models import Base, engine
-from routes import product_router, shop_router, product_image_router, product_tryon_image_router, storage_router, user_setting_router, market_insights_router, ticket_router, ticket_response_router, chatbot_router
+from routes import product_router, shop_router, product_image_router, product_tryon_image_router, storage_router, user_setting_router, market_insights_router, ticket_router, ticket_response_router, chatbot_router, ar_tryon_router
 
 # Load environment variables (current dir and repo root)
 load_dotenv()
@@ -46,6 +46,7 @@ app.include_router(market_insights_router)
 app.include_router(ticket_router)
 app.include_router(ticket_response_router)
 app.include_router(chatbot_router)
+app.include_router(ar_tryon_router)
 
 
 # Root endpoint
